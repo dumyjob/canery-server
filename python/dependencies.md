@@ -1,0 +1,35 @@
+# 
+pip install requests
+
+# 安装 Celery 和 Redis 支持
+pip install celery redis
+
+# 安装阿里云核心 SDK 和 ROS 模块
+pip install aliyun-python-sdk-core aliyun-python-sdk-ros
+
+# 阿里云容器服务 Kubernetes 版 (ACK)
+# 安装阿里云容器服务 SDK 和 Kubernetes 客户端
+pip install aliyun-python-sdk-cs kubernetes
+
+pip install aliyun-python-sdk-core aliyun-python-sdk-cs
+
+
+
+
+# git
+pip install GitPython
+
+# k8s
+pip install kubernetes
+
+
+# maven
+Maven构建相关
+可能需要以下两种方案：
+方案一：通过子进程调用Maven（无需额外包）
+# maven_utils.py 的基础实现
+import subprocess
+方案二：使用高级封装库（需安装）
+# 若涉及Maven项目解析可考虑
+from lxml import etree  # 解析pom.xml
+安装命令：pip install lxml

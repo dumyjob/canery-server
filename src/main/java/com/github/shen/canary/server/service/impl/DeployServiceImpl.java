@@ -1,7 +1,6 @@
 
 package com.github.shen.canary.server.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.shen.canary.server.client.PythonDeployClient;
 import com.github.shen.canary.server.domain.Deployment;
 import com.github.shen.canary.server.domain.DeploymentStatus;
@@ -56,7 +55,7 @@ public class DeployServiceImpl implements DeployService {
         );
 
         // 5. 更新任务元数据
-        deployment.setExternalTaskId(celeryTaskId);
+        deployment.setExternalId(celeryTaskId);
         deploymentRepo.save(deployment);
 
         // 6. 启动状态轮询（后台线程）

@@ -5,8 +5,8 @@ import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "deployments")
+//@Entity
+//@Table(name = "deployments")
 @Data
 public class Deployment {
     @Id
