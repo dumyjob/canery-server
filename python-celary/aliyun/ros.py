@@ -3,7 +3,7 @@ from aliyunsdkcore.client import AcsClient
 from aliyunsdkros.request.v20190910 import CreateStackRequest, DescribeStacksRequest
 
 class ROSClient:
-    def __init__(self, access_key, secret_key):
+    def __init__(self, access_key, secret_key,region=None):
         self.client = AcsClient(access_key, secret_key, 'cn-hangzhou')
 
     def create_stack(self, template):
