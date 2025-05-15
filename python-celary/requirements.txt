@@ -20,6 +20,9 @@ pip install GitPython
 pip install kubernetes
 
 
+pip install fastapi uvicorn pydantic
+
+
 # maven
 Maven构建相关
 可能需要以下两种方案：
@@ -32,3 +35,6 @@ from lxml import etree  # 解析pom.xml
 安装命令：pip install lxml
 requests~=2.32.3
 celery~=5.5.2
+fastapi~=0.115.12
+PyYAML~=6.0.2
+kubernetes~=32.0.1
