@@ -13,9 +13,6 @@ pip install aliyun-python-sdk-cs kubernetes
 
 pip install aliyun-python-sdk-core aliyun-python-sdk-cs
 
-
-
-
 # git
 pip install GitPython
 
@@ -33,3 +30,5 @@ import subprocess
 # 若涉及Maven项目解析可考虑
 from lxml import etree  # 解析pom.xml
 安装命令：pip install lxml
+requests~=2.32.3
+celery~=5.5.2
