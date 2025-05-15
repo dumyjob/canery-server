@@ -2,6 +2,7 @@
 import os
 import requests
 import subprocess
+import shutil
 from celery import Celery
 from celery import chain
 
@@ -25,9 +26,9 @@ def async_deploy_task(self, task_id, git_repo, branch, maven_profile):
 @app.task
 def git_checkout(task_id, repo_url, branch):
     update_status(task_id, "CHECKING_OUT")
+    # 创建临时目录
+    work_dir = f"/tmp/{task_id}"
     try:
-        # 创建临时目录
-        work_dir = f"/tmp/{task_id}"
         os.makedirs(work_dir, exist_ok=True)
         # 执行 Git 命令
         subprocess.run(
@@ -35,9 +36,12 @@ def git_checkout(task_id, repo_url, branch):
             check=True
         )
         return work_dir
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError | Exception as e:
         update_status(task_id, "FAILED", logs=str(e))
+        # 清理临时目录
+        shutil.rmtree(work_dir, ignore_errors=True)
         raise
+
 
 
 @app.task
