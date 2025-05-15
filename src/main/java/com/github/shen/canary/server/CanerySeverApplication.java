@@ -1,4 +1,4 @@
-package com.github.shen.canery_sever;
+package com.github.shen.canary.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

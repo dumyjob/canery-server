@@ -1,4 +1,4 @@
-package com.github.shen.canery_sever;
+package com.github.shen.canary.server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
