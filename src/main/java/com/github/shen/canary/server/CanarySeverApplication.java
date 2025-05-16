@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CanerySeverApplication {
+public class CanarySeverApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CanerySeverApplication.class, args);
+		SpringApplication.run(CanarySeverApplication.class, args);
 	}
 
 }
