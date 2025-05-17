@@ -28,7 +28,7 @@ public class ProjectController {
     }
 
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deleteProject(@PathVariable Long id) {
         projectRepository.remove(id);
         return ResponseEntity.ok(Boolean.TRUE);

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
-public class ProjectRepositoryImpl implements ProjectRepository  {
+public class ProjectRepositoryImpl implements ProjectRepository {
 
     private final ProjectMapper projectMapper;
     private final ProjectEnvVarsMapper projectEnvVarsMapper;
@@ -65,9 +65,11 @@ public class ProjectRepositoryImpl implements ProjectRepository  {
 
     @Override
     public void remove(Long projectId) {
-        int rows = projectMapper.deleteByPrimaryKey(projectId);
-        if (rows != 1) {
-            throw new DatabaseException("项目未预期删除");
-        }
+        projectMapper.deleteByPrimaryKey(projectId);
+
+        Weekend<ProjectEnvVars> projectExample = Weekend.of(ProjectEnvVars.class);
+        projectExample.weekendCriteria()
+                .andEqualTo(ProjectEnvVars::getProjectId, projectId);
+        projectEnvVarsMapper.deleteByExample(projectExample);
     }
 }
