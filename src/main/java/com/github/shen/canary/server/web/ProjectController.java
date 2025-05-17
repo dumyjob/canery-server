@@ -27,8 +27,17 @@ public class ProjectController {
         return ResponseEntity.ok(projectRepository.get(id));
     }
 
+
+    @DeleteMapping("/id")
+    public ResponseEntity<Boolean> deleteProject(@PathVariable Long id) {
+        projectRepository.remove(id);
+        return ResponseEntity.ok(Boolean.TRUE);
+    }
+
     @PostMapping("/search")
     public ResponseEntity<List<Project>> getProjects(@RequestBody ProjectSearch request) {
         return ResponseEntity.ok(projectRepository.get(request));
     }
+
+
 }

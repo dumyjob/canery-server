@@ -12,4 +12,6 @@ public interface ProjectRepository {
     Project get(Long id);
 
     List<Project> get(ProjectSearch request);
+
+    void remove(Long id);
 }

@@ -13,7 +13,6 @@ import tk.mybatis.mapper.weekend.Weekend;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,7 +29,7 @@ public class ProjectRepositoryImpl implements ProjectRepository  {
             throw new DatabaseException("项目配置异常");
         }
 
-        project.envVarsBean()
+        project.envVarsBean(project.getId())
                 .forEach(projectEnvVarsMapper::insert);
 
         return project;
@@ -62,5 +61,13 @@ public class ProjectRepositoryImpl implements ProjectRepository  {
         // 查询条件 todo
 
         return projectMapper.selectByExample(projectExample);
+    }
+
+    @Override
+    public void remove(Long projectId) {
+        int rows = projectMapper.deleteByPrimaryKey(projectId);
+        if (rows != 1) {
+            throw new DatabaseException("项目未预期删除");
+        }
     }
 }

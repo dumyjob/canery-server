@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Data
 public class Project extends DataBean {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "JDBC")
     private Long id;
 
     // 项目名称(zh/en)
@@ -54,7 +55,7 @@ public class Project extends DataBean {
     @Column(name = "jvm_args")
     private String jvmArgs;
 
-    public List<ProjectEnvVars> envVarsBean() {
+    public List<ProjectEnvVars> envVarsBean(Long projectId) {
         if (CollectionUtils.isEmpty(envVars)) {
             return Collections.emptyList();
         }

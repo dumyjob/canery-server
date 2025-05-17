@@ -15,8 +15,8 @@ public class ProjectEnvVars {
     @Column(name = "project_id")
     private Long projectId;
 
-    @Column(name = "val_key")
+    @Column(name = "var_key")
     private String varKey;
-    @Column(name = "val_value")
+    @Column(name = "var_value")
     private String varValue;
 }
