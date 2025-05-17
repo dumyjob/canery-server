@@ -1,6 +1,6 @@
 -- 项目主表
 CREATE TABLE `projects` (
-  `id`  BIGINT(20) NOT NULL COMMENT '主键ID（注意：GenerationType.IDENTITY需配合数值类型主键，当前设计建议改为UUID或数值类型）',
+  `id`  BIGINT(20) AUTO_INCREMENT  NOT NULL COMMENT '主键ID（注意：GenerationType.IDENTITY需配合数值类型主键，当前设计建议改为UUID或数值类型）',
   `name` VARCHAR(255) NOT NULL COMMENT '项目名称(zh/en)',
   `description` TEXT COMMENT '项目描述',
   `git_repos` VARCHAR(500) COMMENT 'Git仓库地址',

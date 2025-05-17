@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Data
 public class Project extends DataBean {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // 项目名称(zh/en)
