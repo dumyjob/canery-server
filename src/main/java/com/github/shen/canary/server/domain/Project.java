@@ -3,6 +3,7 @@ package com.github.shen.canary.server.domain;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+import javax.persistence.*;
 import java.util.Map;
 
 @Entity
@@ -10,7 +11,7 @@ import java.util.Map;
 @Data
 public class Project {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     
     private String name;

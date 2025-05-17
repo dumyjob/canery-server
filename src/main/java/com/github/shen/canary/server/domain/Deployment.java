@@ -3,10 +3,12 @@ package com.github.shen.canary.server.domain;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
-//@Entity
-//@Table(name = "deployments")
+@Entity
+@Table(name = "deployments")
 @Data
 public class Deployment {
     @Id

@@ -3,14 +3,15 @@ package com.github.shen.canary.server.domain;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
-//@Entity
-//@Table(name = "deploy_logs", indexes = {
-//        @Index(name = "idx_task_step", columnList = "taskId,step"),
-//        @Index(name = "idx_log_time", columnList = "logTime DESC")
-//})
+@Entity
+@Table(name = "deploy_logs", indexes = {
+        @Index(name = "idx_task_step", columnList = "taskId,step"),
+        @Index(name = "idx_log_time", columnList = "logTime DESC")
+})
 public class TaskLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
