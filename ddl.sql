@@ -13,9 +13,9 @@ CREATE TABLE `projects` (
   `jvm_args` TEXT COMMENT 'JVM参数',
 
   `create_dt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `create_by` VARCHAR(255) NOT NULL COMMENT '创建人',
+  `create_by` VARCHAR(255) NOT NULL default '' COMMENT '创建人',
   `update_dt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-  `update_by` VARCHAR(255) NOT NULL COMMENT '修改人',
+  `update_by` VARCHAR(255) NOT NULL  default '' COMMENT '修改人',
   `is_delete` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除标志',
   PRIMARY KEY (`id`),
   INDEX `idx_project_type` (`project_type`),
@@ -26,9 +26,8 @@ CREATE TABLE `projects` (
 CREATE TABLE `project_env_vars` (
   `project_id` VARCHAR(255) NOT NULL,
   `var_key` VARCHAR(255) NOT NULL COMMENT '变量名',
-  `var_value` TEXT COMMENT '变量值',
-  PRIMARY KEY (`project_id`, `var_key`),
-  CONSTRAINT `fk_env_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+  `var_value` TEXT not null COMMENT '变量值',
+  PRIMARY KEY (`project_id`, `var_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
