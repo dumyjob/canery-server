@@ -4,8 +4,12 @@ import com.github.shen.canary.server.dao.ProjectMapper;
 import com.github.shen.canary.server.entity.Project;
 import com.github.shen.canary.server.exceptions.DatabaseException;
 import com.github.shen.canary.server.repository.ProjectRepository;
+import com.github.shen.canary.server.web.request.ProjectSearch;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import tk.mybatis.mapper.weekend.Weekend;
+
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -26,5 +30,14 @@ public class ProjectRepositoryImpl implements ProjectRepository  {
     @Override
     public Project get(final Long id) {
         return projectMapper.selectByPrimaryKey(id);
+    }
+
+
+    @Override
+    public List<Project> get(ProjectSearch request) {
+        Weekend<Project> projectExample = Weekend.of(Project.class);
+        // 查询条件 todo
+
+        return projectMapper.selectByExample(projectExample);
     }
 }

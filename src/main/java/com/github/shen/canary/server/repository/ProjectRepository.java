@@ -1,6 +1,9 @@
 package com.github.shen.canary.server.repository;
 
 import com.github.shen.canary.server.entity.Project;
+import com.github.shen.canary.server.web.request.ProjectSearch;
+
+import java.util.List;
 
 public interface ProjectRepository {
 
@@ -8,4 +11,5 @@ public interface ProjectRepository {
 
     Project get(Long id);
 
+    List<Project> get(ProjectSearch request);
 }
