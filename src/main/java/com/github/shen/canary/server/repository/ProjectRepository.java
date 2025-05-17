@@ -14,4 +14,6 @@ public interface ProjectRepository {
     List<Project> get(ProjectSearch request);
 
     void remove(Long id);
+
+    Project update(Project project);
 }

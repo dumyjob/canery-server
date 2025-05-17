@@ -9,6 +9,7 @@ import com.github.shen.canary.server.repository.ProjectRepository;
 import com.github.shen.canary.server.web.request.ProjectSearch;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import tk.mybatis.mapper.util.Assert;
 import tk.mybatis.mapper.weekend.Weekend;
 
 import java.util.List;
@@ -71,5 +72,29 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         projectExample.weekendCriteria()
                 .andEqualTo(ProjectEnvVars::getProjectId, projectId);
         projectEnvVarsMapper.deleteByExample(projectExample);
+    }
+
+    @Override
+    public Project update(Project project) {
+        Assert.isTrue(project != null && project.getId() != null,
+                "项目id不能为空");
+
+        int rows = projectMapper.updateByPrimaryKeySelective(project);
+        if (rows != 1) {
+            throw new DatabaseException("项目配置异常");
+        }
+
+
+        // env-vars先删除后添加
+        Weekend<ProjectEnvVars> projectExample = Weekend.of(ProjectEnvVars.class);
+        projectExample.weekendCriteria()
+                .andEqualTo(ProjectEnvVars::getProjectId, project.getId());
+        projectEnvVarsMapper.deleteByExample(projectExample);
+
+
+        project.envVarsBean(project.getId())
+                .forEach(projectEnvVarsMapper::insert);
+
+        return project;
     }
 }

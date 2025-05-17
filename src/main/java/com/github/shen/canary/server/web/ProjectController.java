@@ -22,11 +22,16 @@ public class ProjectController {
         return ResponseEntity.ok(savedProject);
     }
 
+    @PutMapping
+    public ResponseEntity<Project> updateProject(@RequestBody Project project) {
+        Project updateProject = projectRepository.update(project);
+        return ResponseEntity.ok(updateProject);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Project> getProject(@PathVariable Long id) {
         return ResponseEntity.ok(projectRepository.get(id));
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deleteProject(@PathVariable Long id) {
