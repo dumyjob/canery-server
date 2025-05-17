@@ -1,0 +1,12 @@
+package com.github.shen.canary.server.dao;
+
+import com.github.shen.canary.server.entity.Project;
+import com.github.shen.canary.server.entity.ProjectEnvVars;
+import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.common.Mapper;
+
+
+@Repository
+public interface ProjectEnvVarsMapper extends Mapper<ProjectEnvVars> {
+
+}

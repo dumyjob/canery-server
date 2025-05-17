@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
+import org.springframework.util.CollectionUtils;
 
-
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -38,8 +41,7 @@ public class Project extends DataBean {
     private String cloudConfig;
 
     // 环境变量
-    @ElementCollection
-    @Column(name = "env_vars")
+    @Transient
     private Map<String, String> envVars;
 
     // cpu数量
@@ -52,4 +54,22 @@ public class Project extends DataBean {
     // jvm参数
     @Column(name = "jvm_args")
     private String jvmArgs;
+
+    public List<ProjectEnvVars> envVarsBean() {
+        if (CollectionUtils.isEmpty(envVars)) {
+            return Collections.emptyList();
+        }
+
+        return envVars.entrySet()
+                .stream().map(entry -> {
+                    ProjectEnvVars projectEnvVars = new ProjectEnvVars();
+                    projectEnvVars.setProjectId(this.id);
+                    projectEnvVars.setVarKey(entry.getKey());
+                    projectEnvVars.setVarValue(entry.getValue());
+
+                    return projectEnvVars;
+                })
+                .collect(Collectors.toList());
+
+    }
 }
