@@ -25,7 +25,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProject(@PathVariable String id) {
+    public ResponseEntity<Project> getProject(@PathVariable Long id) {
         return ResponseEntity.ok(projectRepository.get(id));
     }
 }

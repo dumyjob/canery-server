@@ -31,7 +31,7 @@ public class DeployServiceImpl implements DeployService {
 
     @Override
     @Transactional
-    public String deploySync(String projectId, String env)  {
+    public String deploySync(Long projectId, String branch, String env) {
         // 1. 校验项目并加载配置
         Project project = Optional.ofNullable(projectRepo.get(projectId))
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));

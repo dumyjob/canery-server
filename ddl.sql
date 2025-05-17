@@ -38,6 +38,7 @@ CREATE TABLE release_orders (
   release_name VARCHAR(255) NOT NULL COMMENT '发布单名称',
   release_type ENUM('canary','rolling','normal','gray') NOT NULL COMMENT '发布类型(金丝雀|滚动|常规|灰度)',
   traffic_rule ENUM('canary','rolling','normal','gray')
+  env varchar(50) COMMENT '发布环境',
   status ENUM('draft','in_progress','completed','rollback') DEFAULT 'draft',
   gray_version varchar(50) COMMENT '灰度版本',
    `create_dt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

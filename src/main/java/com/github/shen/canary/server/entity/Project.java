@@ -1,16 +1,17 @@
 package com.github.shen.canary.server.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "projects")
 @Data
-public class Project {
+public class Project extends DataBean {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -50,18 +51,4 @@ public class Project {
     // jvm参数
     @Column(name = "jvm_args")
     private String jvmArgs;
-
-
-    @Column(name = "create_dt")
-    private LocalDateTime createDt;
-    @Column(name = "create_by")
-    private String createBy;
-    @Column(name = "update_dt")
-    private LocalDateTime updateDt;
-    @Column(name = "update_by")
-    private String updateBy;
-
-    @Column(name = "is_delete")
-    private Boolean isDelete;
-
 }

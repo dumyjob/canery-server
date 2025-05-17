@@ -6,6 +6,6 @@ public interface ProjectRepository {
 
     Project save(Project project);
 
-    Project get(String id);
+    Project get(Long id);
 
 }
