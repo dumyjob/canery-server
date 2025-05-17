@@ -8,7 +8,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 /**
  * @see com.github.shen.canary.server.web.LogController
- *
  */
 // WebSocket配置类
 @Configuration
@@ -25,7 +24,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         //通过 configureMessageBroker 方法设置消息代理前缀和应用程序目的地前缀
-        registry.enableSimpleBroker("/topic"); ; // 代理转发以 /topic 开头的消息
+        registry.enableSimpleBroker("/topic");
+        ; // 代理转发以 /topic 开头的消息
         registry.setApplicationDestinationPrefixes("/app"); // 客户端发送消息的前缀
     }
 }

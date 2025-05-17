@@ -32,8 +32,8 @@ public class PythonDeployClient {
         try {
             // 构建Celery消息协议
             CeleryTaskMessage message = CeleryTaskMessage.builder(deployTaskName, taskId)
-                .args(Arrays.asList(cloudConfig, envVars))
-                .build();
+                    .args(Arrays.asList(cloudConfig, envVars))
+                    .build();
 
             // 序列化并推送到Redis队列
             String queue = "celery";
