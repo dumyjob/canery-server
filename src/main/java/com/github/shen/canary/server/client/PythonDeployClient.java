@@ -3,7 +3,7 @@ package com.github.shen.canary.server.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.shen.canary.server.entity.CeleryTaskStatus;
 import com.github.shen.canary.server.exceptions.DeploymentException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +14,13 @@ import java.util.Arrays;
 import java.util.Map;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PythonDeployClient {
 
     @Value("${celery.task.deploy:tasks.deploy_ros_task}")
     private String deployTaskName; // Celery任务名，如"tasks.deploy_ros_task"
 
-    private RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private final RestTemplate restTemplate;
     private final String pythonServiceUrl = "http://python-worker:8000";

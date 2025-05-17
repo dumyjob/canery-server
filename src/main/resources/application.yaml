@@ -7,6 +7,10 @@ spring:
     password: sxfT0102!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  redis:
+    host:localhost
+    port:6379
+
 
 mybatis:
   type-aliases-package: com.github.shen.canary.**.entity
