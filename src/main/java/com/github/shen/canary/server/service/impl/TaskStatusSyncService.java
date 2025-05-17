@@ -4,7 +4,7 @@ import com.github.shen.canary.server.client.PythonDeployClient;
 import com.github.shen.canary.server.entity.CeleryTaskStatus;
 import com.github.shen.canary.server.entity.DeploymentStatus;
 import com.github.shen.canary.server.repository.DeploymentRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,15 +14,14 @@ import java.util.concurrent.Executors;
 import static com.github.shen.canary.server.entity.DeploymentStatus.PENDING;
 
 @Component
-@AllArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class TaskStatusSyncService {
 
-    private DeploymentRepository deploymentRepo;
+    private final DeploymentRepository deploymentRepo;
+    private final PythonDeployClient pythonClient;
 
-    private PythonDeployClient pythonClient;
-
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     /**
      * 启动后台线程轮询任务状态

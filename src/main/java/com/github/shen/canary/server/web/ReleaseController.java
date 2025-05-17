@@ -18,7 +18,7 @@ public class ReleaseController {
     private final ReleaseRepository releaseRepository;
     private final DeployService deployService;
 
-    @PostMapping("/deploy/{releaseId")
+    @PostMapping("/deploy/{releaseId}")
     public ResponseEntity<Boolean> deploy(@PathVariable("releaseId") Long releaseId) {
         // 根据发布单生成部署任务
         final Release release = releaseRepository.get(releaseId);

@@ -5,12 +5,7 @@ import com.github.shen.canary.server.repository.ProjectRepository;
 import com.github.shen.canary.server.web.request.ProjectSearch;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,7 +27,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectRepository.get(id));
     }
 
-    @PostMapping
+    @PostMapping("/search")
     public ResponseEntity<List<Project>> getProjects(@RequestBody ProjectSearch request) {
         return ResponseEntity.ok(projectRepository.get(request));
     }
