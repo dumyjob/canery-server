@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.repository;
 
-import com.github.shen.canary.server.domain.Project;
+import com.github.shen.canary.server.entity.Project;
 
 public interface ProjectRepository {
 

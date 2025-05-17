@@ -1,7 +1,7 @@
 package com.github.shen.canary.server.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.shen.canary.server.domain.CeleryTaskStatus;
+import com.github.shen.canary.server.entity.CeleryTaskStatus;
 import com.github.shen.canary.server.exceptions.DeploymentException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

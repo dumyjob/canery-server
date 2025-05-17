@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.service.impl;
 
-import com.github.shen.canary.server.domain.Project;
+import com.github.shen.canary.server.entity.Project;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;

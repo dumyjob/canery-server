@@ -1,4 +1,4 @@
-package com.github.shen.canary.server.domain;
+package com.github.shen.canary.server.entity;
 
 import lombok.Data;
 

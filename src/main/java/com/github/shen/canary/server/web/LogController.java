@@ -1,7 +1,7 @@
 package com.github.shen.canary.server.web;
 
-import com.github.shen.canary.server.domain.LogEntry;
-import com.github.shen.canary.server.domain.TaskLog;
+import com.github.shen.canary.server.entity.LogEntry;
+import com.github.shen.canary.server.entity.TaskLog;
 import com.github.shen.canary.server.repository.LogRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

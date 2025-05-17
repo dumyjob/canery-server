@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.repository.impl;
 
-import com.github.shen.canary.server.domain.TaskLog;
+import com.github.shen.canary.server.entity.TaskLog;
 import com.github.shen.canary.server.repository.LogRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.connection.stream.StreamRecords;

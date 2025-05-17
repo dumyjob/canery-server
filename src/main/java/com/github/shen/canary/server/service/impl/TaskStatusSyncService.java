@@ -1,8 +1,8 @@
 package com.github.shen.canary.server.service.impl;
 
 import com.github.shen.canary.server.client.PythonDeployClient;
-import com.github.shen.canary.server.domain.CeleryTaskStatus;
-import com.github.shen.canary.server.domain.DeploymentStatus;
+import com.github.shen.canary.server.entity.CeleryTaskStatus;
+import com.github.shen.canary.server.entity.DeploymentStatus;
 import com.github.shen.canary.server.repository.DeploymentRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.github.shen.canary.server.domain.DeploymentStatus.PENDING;
+import static com.github.shen.canary.server.entity.DeploymentStatus.PENDING;
 
 @Component
 @AllArgsConstructor

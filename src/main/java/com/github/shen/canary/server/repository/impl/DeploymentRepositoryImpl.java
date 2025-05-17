@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.repository.impl;
 
-import com.github.shen.canary.server.domain.Deployment;
+import com.github.shen.canary.server.entity.Deployment;
 import com.github.shen.canary.server.repository.DeploymentRepository;
 import org.springframework.stereotype.Component;
 

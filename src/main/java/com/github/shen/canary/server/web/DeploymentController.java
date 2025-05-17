@@ -1,7 +1,7 @@
 package com.github.shen.canary.server.web;
 
-import com.github.shen.canary.server.domain.Deployment;
-import com.github.shen.canary.server.domain.Project;
+import com.github.shen.canary.server.entity.Deployment;
+import com.github.shen.canary.server.entity.Project;
 import com.github.shen.canary.server.repository.DeploymentRepository;
 import com.github.shen.canary.server.repository.ProjectRepository;
 import com.github.shen.canary.server.service.DeployService;

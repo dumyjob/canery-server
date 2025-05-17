@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.web;
 
-import com.github.shen.canary.server.domain.Project;
+import com.github.shen.canary.server.entity.Project;
 import com.github.shen.canary.server.repository.ProjectRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.github.shen.canary.server.service;
 
-import com.github.shen.canary.server.domain.DeploymentStatus;
+import com.github.shen.canary.server.entity.DeploymentStatus;
 
 public interface DeployService {
     /**

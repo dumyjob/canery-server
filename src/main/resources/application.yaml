@@ -1,0 +1,14 @@
+spring:
+  application:
+    name:canary-sever
+  datasource:
+    url: jdbc:mysql://localhost:3306/canary?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: shenxf
+    password: sxfT0102!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+mybatis:
+  type-aliases-package: com.github.shen.canary.**.entity
+  configuration:
+    map-underscore-to-camel-case: false
