@@ -1,8 +1,8 @@
 package com.github.shen.canary.server.entity;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 
-import javax.persistence.Column;
 import java.time.LocalDateTime;
 
 @Data
@@ -18,6 +18,6 @@ public class DataBean {
     protected String updateBy;
 
     @Column(name = "is_delete")
-    protected Boolean isDelete;
+    protected Boolean valid;
 
 }
