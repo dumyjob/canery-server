@@ -29,7 +29,7 @@ public class Project extends DataBean {
     private String gitRepos;
 
     @Column(name = "web_hook")
-    private String webHook;
+    private String webhook;
 
     // 项目类型(boot-jar/dubbo)
     @Column(name = "project_type")
