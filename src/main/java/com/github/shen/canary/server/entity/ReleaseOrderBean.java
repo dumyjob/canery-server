@@ -1,10 +1,10 @@
 package com.github.shen.canary.server.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
 
-import javax.persistence.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

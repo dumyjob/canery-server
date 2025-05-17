@@ -1,9 +1,10 @@
 package com.github.shen.canary.server.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
-import javax.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Data
