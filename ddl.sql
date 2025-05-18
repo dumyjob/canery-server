@@ -91,8 +91,8 @@ CREATE TABLE deploy_tasks (
     status VARCHAR(20) NOT NULL,
     git_repo VARCHAR(255),
     branch VARCHAR(50),
-    commit_id varchar(255) COMMENT '部署任务branch上的commit-id'
-    logs TEXT,
+    commit_id varchar(255) COMMENT '部署任务branch上的commit-id',
+    logs TEXT comment '日志',
     start_time TIMESTAMP,
     end_time TIMESTAMP,
      PRIMARY KEY (id)
