@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public enum TrafficRule {
 
-    AUTO("全自动模式", 0),
-    MANUAL("手动控制模式", 1);
+    auto("全自动模式", 0),
+    manual("手动控制模式", 1);
 
     private final String description;
     private final int code;
