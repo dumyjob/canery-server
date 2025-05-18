@@ -1,8 +1,8 @@
 # deploy_utils.py
+import yaml
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-import yaml
-import os
+
 
 def deploy_to_k8s(
         image_name: str,
