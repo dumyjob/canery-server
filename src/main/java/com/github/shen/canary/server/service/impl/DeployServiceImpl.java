@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -38,8 +37,8 @@ public class DeployServiceImpl implements DeployService {
 
         // 2. 生成部署任务记录
         Deployment deployment = new Deployment();
-        deployment.setId(UUID.randomUUID().toString());
         deployment.setProjectId(projectId);
+        deployment.setBranch(branch);
         deployment.setStatus(DeploymentStatus.PENDING.name());
         deployment.setStartTime(LocalDateTime.now());
         deploymentRepo.save(deployment);

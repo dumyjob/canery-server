@@ -1,10 +1,7 @@
 package com.github.shen.canary.server.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class Deployment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "JDBC")
     private String id;           // 任务ID（Celery Task ID）
 
     @Column(name = "project_id")
