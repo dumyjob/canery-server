@@ -1,3 +1,15 @@
+project_root/
+├── setup.py # 包配置
+├── src/ # 代码目录（可选）
+│ ├── tasks/
+│ │ ├── __init__.py
+│ │ └── status_service.py
+│ └── api/
+│ └── main.py
+│ └── aliyun/
+│ └── ros.py
+└── requirements.txt # 依赖列表（可选）
+
 python -m venv venv  # 在项目根目录执行
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate    # Windows

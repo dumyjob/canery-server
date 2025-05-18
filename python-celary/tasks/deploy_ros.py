@@ -1,9 +1,10 @@
 
-from celery import Celery
-from celery import chain
-import  time
 import os
-from aliyun.ros import  ROSClient
+import time
+
+from celery import Celery
+
+from aliyun.ros import ROSClient
 from tasks.deploy_tasks import update_status
 
 app = Celery('tasks', broker='redis://redis:6379/0')

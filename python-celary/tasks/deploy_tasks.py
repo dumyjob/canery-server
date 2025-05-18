@@ -7,9 +7,10 @@ import shutil
 from celery import Celery
 from celery import chain
 from celery import group
-from deploy_ros import  deploy_ros
 
-app = Celery('tasks', broker='redis://redis:6379/0')
+# from deploy_ros import  deploy_ros
+
+app = Celery('tasks', broker='redis://localhost:6379/0')
 
 
 @app.task(bind=True, max_retries=3)
@@ -19,7 +20,7 @@ def async_deploy_task(self, task_id, git_repo, branch, maven_profile):
         workflow = chain(
             git_checkout.s(task_id, git_repo, branch),
             maven_build.s(task_id, maven_profile),
-            group(deploy_to_k8s.s(task_id) | deploy_ros.s(task_id))
+            group(deploy_to_k8s.s(task_id))
         )
 
         # 尝试部署到2个集群
