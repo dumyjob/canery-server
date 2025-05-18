@@ -3,7 +3,7 @@ package com.github.shen.canary.server.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.annotation.Id;
+
 
 
 @EqualsAndHashCode(callSuper = true)
@@ -13,7 +13,7 @@ import org.springframework.data.annotation.Id;
 public class ReleaseOrderBean extends DataBean {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "JDBC")
     private Long id;
 
     @Column(name = "release_name")
