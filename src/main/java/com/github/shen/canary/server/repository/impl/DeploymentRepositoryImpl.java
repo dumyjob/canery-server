@@ -29,4 +29,12 @@ public class DeploymentRepositoryImpl implements DeploymentRepository {
     public Optional<Deployment> findById(final String deploymentId) {
         return Optional.empty();
     }
+
+    @Override
+    public void update(Deployment deployment) {
+        int rows = deploymentMapper.updateByPrimaryKeySelective(deployment);
+        if (rows != 1) {
+            throw new DatabaseException("更新部署任务失败");
+        }
+    }
 }

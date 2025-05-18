@@ -87,6 +87,7 @@ CREATE TABLE gray_strategies (
 -- 发布部署任务
 CREATE TABLE deploy_tasks (
     id BIGINT AUTO_INCREMENT COMMENT '部署id',
+    external_id  VARCHAR(255) NOT NULL default '' COMMENT 'Celery任务',
     project_id BIGINT NOT NULL COMMENT '项目ID',
     status VARCHAR(20) NOT NULL,
     git_repo VARCHAR(255),
@@ -95,5 +96,5 @@ CREATE TABLE deploy_tasks (
     logs TEXT comment '日志',
     start_time TIMESTAMP,
     end_time TIMESTAMP,
-     PRIMARY KEY (id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部署任务表';;
+    PRIMARY KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部署任务表';

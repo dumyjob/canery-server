@@ -38,6 +38,7 @@ public class DeployServiceImpl implements DeployService {
         // 2. 生成部署任务记录
         Deployment deployment = new Deployment();
         deployment.setProjectId(projectId);
+        deployment.setGitRepo(project.getGitRepos());
         deployment.setBranch(branch);
         deployment.setStatus(DeploymentStatus.PENDING.name());
         deployment.setStartTime(LocalDateTime.now());
@@ -55,7 +56,7 @@ public class DeployServiceImpl implements DeployService {
 
         // 5. 更新任务元数据
         deployment.setExternalId(celeryTaskId);
-        deploymentRepo.save(deployment);
+        deploymentRepo.update(deployment);
 
         // 6. 启动状态轮询（后台线程）
         statusSyncService.startStatusSync(deployment.getId(), celeryTaskId);

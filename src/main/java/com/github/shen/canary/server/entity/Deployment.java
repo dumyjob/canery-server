@@ -15,7 +15,11 @@ public class Deployment {
 
     @Column(name = "project_id")
     private Long projectId;
+
+    @Column(name = "git_repo")
+    private String gitRepo;
     private String branch;
+
     private String env;
     private String status;      // PENDING, DEPLOYING, SUCCESS, FAILED
 
