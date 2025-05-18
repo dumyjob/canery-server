@@ -36,31 +36,28 @@ CREATE TABLE release_orders (
   id BIGINT AUTO_INCREMENT COMMENT '发布单ID',
   release_name VARCHAR(255) NOT NULL COMMENT '发布单名称',
   release_type ENUM('canary','rolling','normal','gray') NOT NULL COMMENT '发布类型(金丝雀|滚动|常规|灰度)',
-  traffic_rule ENUM('canary','rolling','normal','gray')
-  env varchar(50) COMMENT '发布环境',
+  traffic_rule ENUM('auto','manual'),
+  env varchar(50) not null default '' COMMENT '发布环境',
   status ENUM('draft','in_progress','completed','rollback') DEFAULT 'draft',
   gray_version varchar(50) COMMENT '灰度版本',
    `create_dt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_by` VARCHAR(255) NOT NULL COMMENT '创建人',
+    `create_by` VARCHAR(255) NOT NULL default '' COMMENT '创建人',
     `update_dt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-    `update_by` VARCHAR(255) NOT NULL COMMENT '修改人',
+    `update_by` VARCHAR(255) NOT NULL  default '' COMMENT '修改人',
     `is_delete` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除标志',
   PRIMARY KEY (id),
-  UNIQUE KEY uniq_order_name (release_name),
-  INDEX idx_git_branch (git_branch)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  UNIQUE KEY uniq_order_name (release_name)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 -- 发布单关联项目
 CREATE TABLE release_projects (
   release_id BIGINT NOT NULL COMMENT '发布单ID',
   project_id BIGINT NOT NULL COMMENT '项目ID',
-  deploy_version VARCHAR(50) NOT NULL COMMENT '待发布版本号',
+
   deploy_branch VARCHAR(100) NOT NULL COMMENT '部署分支（如feature/login-api）[7](@ref)',
-  rollback_version VARCHAR(50) COMMENT '回滚版本号',
-  rollback_branch VARCHAR(100) COMMENT '回滚分支',
+
   PRIMARY KEY (release_id, project_id),
-  FOREIGN KEY (release_id) REFERENCES release_orders(order_id) ON DELETE CASCADE,
   INDEX idx_deploy_branch (deploy_branch)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

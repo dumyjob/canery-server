@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "release_order")
+@Table(name = "release_orders")
 public class ReleaseOrderBean extends DataBean {
 
     @Id
@@ -22,6 +22,9 @@ public class ReleaseOrderBean extends DataBean {
     private String releaseType;
 
     private String env;
+
+    @Column(name = "gray_version")
+    private String grayVersion;
 
     private String status;
 

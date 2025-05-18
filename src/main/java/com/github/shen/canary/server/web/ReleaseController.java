@@ -19,7 +19,6 @@ public class ReleaseController {
     private final ReleaseRepository releaseRepository;
     private final DeployService deployService;
 
-
     @PostMapping
     public ResponseEntity<Release> createRelease(@RequestBody ReleaseOrderRequest release) {
         Release releaseOrder = releaseRepository.save(Release.valueOf(release));

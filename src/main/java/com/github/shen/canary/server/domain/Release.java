@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
@@ -21,6 +20,8 @@ public class Release {
     private final ReleaseType releaseType;
 
     private final String env;
+
+    private final String grayVersion;
 
     private final TrafficRule trafficRule;
 
@@ -35,7 +36,8 @@ public class Release {
         if (CollectionUtils.isEmpty(releaseProjects)) {
             throw new IllegalArgumentException("发布项目不能为空");
         }
-
+        this.grayVersion = releaseOrderBean.getGrayVersion();
+        this.trafficRule = TrafficRule.valueOf(releaseOrderBean.getTrafficRule());
         this.releaseProjects = releaseProjects.stream()
                 .map(ReleaseProject::valueOf)
                 .collect(Collectors.toList());
@@ -49,6 +51,8 @@ public class Release {
         if (CollectionUtils.isEmpty(release.getProjects())) {
             throw new IllegalArgumentException("发布项目不能为空");
         }
+        this.grayVersion = release.getGrayVersion();
+        this.trafficRule = TrafficRule.valueOf(release.getTrafficPolicy());
         this.releaseProjects = release.getProjects();
     }
 
@@ -86,7 +90,7 @@ public class Release {
         releaseOrderBean.setReleaseName(this.releaseDesc);
         releaseOrderBean.setReleaseType(this.releaseType.name());
         releaseOrderBean.setEnv(this.env);
-        releaseOrderBean.setTrafficRule(this);
+        releaseOrderBean.setTrafficRule(this.trafficRule.name());
 
         return releaseOrderBean;
     }

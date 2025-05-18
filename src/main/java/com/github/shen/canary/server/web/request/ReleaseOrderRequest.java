@@ -14,7 +14,9 @@ public class ReleaseOrderRequest {
     private String releaseType;
     private String env;
 
-    private String trafficRule;
+    private String grayVersion;
+
+    private String trafficPolicy;
 
     private List<ReleaseProject> projects;
 }

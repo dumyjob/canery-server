@@ -1,14 +1,16 @@
 package com.github.shen.canary.server.domain;
 
 import com.github.shen.canary.server.entity.ReleaseProjectBean;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@NoArgsConstructor
 public class ReleaseProject {
 
-    private final Long releaseId;
-    private final Long projectId;
-    private final String branch;
+    private Long releaseId;
+    private Long projectId;
+    private String branch;
 
     private ReleaseProject(ReleaseProjectBean releaseProjectBean) {
         this.releaseId = releaseProjectBean.getReleaseId();
