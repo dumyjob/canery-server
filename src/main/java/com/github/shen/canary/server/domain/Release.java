@@ -47,7 +47,7 @@ public class Release {
     }
 
     private Release(ReleaseOrderRequest release) {
-        this.id = release.getReleaseId();
+        this.id = release.getId();
         this.releaseDesc = release.getReleaseDesc();
         this.releaseType = ReleaseType.valueOf(release.getReleaseType());
         this.env = release.getEnv();

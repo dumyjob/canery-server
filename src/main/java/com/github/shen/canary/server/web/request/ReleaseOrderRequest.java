@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class ReleaseOrderRequest {
 
-    private Long releaseId;
+    private Long id;
 
     private String releaseDesc;
     private String releaseType;

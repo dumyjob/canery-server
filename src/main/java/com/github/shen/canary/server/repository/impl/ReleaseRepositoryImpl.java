@@ -10,6 +10,7 @@ import com.github.shen.canary.server.repository.ReleaseRepository;
 import com.github.shen.canary.server.web.request.ReleaseSearch;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.weekend.Weekend;
 
@@ -78,6 +79,7 @@ public class ReleaseRepositoryImpl implements ReleaseRepository {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Release save(Release release) {
         ReleaseOrderBean releaseOrderBean = release.releaseOrderBean();
         releaseOrderMapper.insertSelective(releaseOrderBean);
@@ -89,6 +91,7 @@ public class ReleaseRepositoryImpl implements ReleaseRepository {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Release update(Release release) {
         ReleaseOrderBean releaseOrderBean = release.releaseOrderBean();
         releaseOrderMapper.updateByPrimaryKeySelective(releaseOrderBean);
