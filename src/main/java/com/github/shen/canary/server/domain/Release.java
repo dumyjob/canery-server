@@ -27,6 +27,8 @@ public class Release {
 
     private final List<ReleaseProject> releaseProjects;
 
+    private final ReleaseStatus status;
+
 
     private Release(ReleaseOrderBean releaseOrderBean, List<ReleaseProjectBean> releaseProjects) {
         this.id = releaseOrderBean.getId();
@@ -41,6 +43,7 @@ public class Release {
         this.releaseProjects = releaseProjects.stream()
                 .map(ReleaseProject::valueOf)
                 .collect(Collectors.toList());
+        this.status = ReleaseStatus.valueOf(releaseOrderBean.getStatus());
     }
 
     private Release(ReleaseOrderRequest release) {
@@ -54,6 +57,7 @@ public class Release {
         this.grayVersion = release.getGrayVersion();
         this.trafficRule = TrafficRule.valueOf(release.getTrafficPolicy());
         this.releaseProjects = release.getProjects();
+        this.status = ReleaseStatus.draft;
     }
 
     public static Release valueOf(ReleaseOrderBean releaseOrderBean, List<ReleaseProjectBean> releaseProjects) {
