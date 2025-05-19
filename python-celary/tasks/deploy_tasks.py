@@ -1,16 +1,16 @@
 # tasks/deploy_tasks.py
+import logging
 import os
-from datetime import datetime
-import requests
-import subprocess
 import shutil
+import subprocess
+import sys
+from datetime import datetime
+
+import requests
 from celery import Celery
 from celery import chain
 from celery import group
 
-import logging
-
-logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO - 系统启动完成 [2,6](@ref)
 # from deploy_ros import  deploy_ros
 
 app = Celery('tasks', broker='redis://localhost:6379/0',
@@ -23,6 +23,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     filename='app.log'
 )
+logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO - 系统启动完成 [2,6](@ref)
 
 
 
@@ -31,7 +32,7 @@ logging.basicConfig(
 def deploy_task(self, task_id, config):
     logging.info("run task:" + task_id + ", config:" + str(config))
     try:
-        git_repo = config.get("git_repo")
+        git_repo = config.get("git_repos")
         branch = config.get("branch", "main")
         maven_profile = config.get('maven_profile')
 
@@ -161,7 +162,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
         cmd,
         cwd=cwd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=subprocess.STDOUT,  # error日志合并到stdout
         text=True,
         bufsize=1
     )
@@ -169,12 +170,24 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     # 逐行读取输出
     while True:
         line = process.stdout.readline()
-        if not line and process.poll() is not None:
+        if not line:  # 空行表示流结束
+            if process.poll() is not None:  # 确认进程已终止
+                # 读取所有残留输出
+                remaining = process.stdout.read()
+                if remaining:
+                    for rem_line in remaining.splitlines():
+                        print(f"\033[31m[ERROR] {rem_line}\033[0m", file=sys.stderr)
+
             break
         if line:
+            if "ERROR" in line:
+                print(f"\033[31m[ERROR] {line}\033[0m", file=sys.stderr)
+            else:
+                # 新增控制台输出（带颜色标记）
+                print(f"\033[32m[CMD-LOG] {line.strip()}\033[0m")  # 绿色字体标识[1](@ref)
             # 推送实时日志到后端
             requests.post(
-                f"http://java-service/api/tasks/{task_id}/log",
+                f"http://localhost:8080/api/tasks/{task_id}/log",
                 json={
                     "timestamp": datetime.now().isoformat(),
                     "content": line.strip(),
