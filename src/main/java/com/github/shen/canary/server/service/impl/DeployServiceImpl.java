@@ -10,6 +10,7 @@ import com.github.shen.canary.server.repository.DeploymentRepository;
 import com.github.shen.canary.server.repository.ProjectRepository;
 import com.github.shen.canary.server.service.DeployService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DeployServiceImpl implements DeployService {
 
 
@@ -47,6 +49,7 @@ public class DeployServiceImpl implements DeployService {
         // 3. 准备调用Python任务的配置
         DeployConfig config = buildDeployConfig(project, env);
 
+        log.info("生成部署任务:{}", deployment);
         // 4. 异步调用Python Celery任务（通过Redis消息队列）
         String celeryTaskId = pythonDeployClient.triggerDeployTask(
                 deployment.getId(),

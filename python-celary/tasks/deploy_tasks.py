@@ -10,11 +10,15 @@ from celery import group
 
 # from deploy_ros import  deploy_ros
 
-app = Celery('tasks', broker='redis://localhost:6379/0')
+app = Celery('tasks', broker='redis://localhost:6379/0',
+             task_serializer='json',  # 任务参数序列化为 json
+             result_serializer='json',  # 结果序列化为 JSON
+             accept_content=['json'])  # 仅接受这两种格式)
 
 
+# 默认队列celery
 @app.task(bind=True, max_retries=3)
-def async_deploy_task(self, task_id, git_repo, branch, maven_profile):
+def deploy_task(self, task_id, git_repo, branch, maven_profile):
     try:
         # 任务链：Git Checkout → Maven Build → Deploy
         workflow = chain(

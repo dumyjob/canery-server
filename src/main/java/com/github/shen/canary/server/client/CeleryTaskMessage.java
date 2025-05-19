@@ -16,9 +16,19 @@ public class CeleryTaskMessage {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    static {
+        // 给celery队列的消息null字段就不序列化了
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
+
+    private String lang = "py";
+
     // Required Fields
     private String task;       // Celery任务名，如"tasks.deploy_ros_task"
     private String id;        // 任务唯一ID，如UUID
+
+    private String deliveryTag;
 
     // Optional Fields
     private List<?> args;            // 位置参数列表
@@ -36,6 +46,8 @@ public class CeleryTaskMessage {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("task", this.task);
         body.put("id", this.id);
+        body.put("delivery_tag", this.deliveryTag);
+        body.put("lang", this.lang);
         body.put("args", this.args != null ? this.args : Collections.emptyList());
         body.put("kwargs", this.kwargs != null ? this.kwargs : Collections.emptyMap());
         body.put("retries", this.retries != null ? this.retries : 0);
@@ -54,7 +66,8 @@ public class CeleryTaskMessage {
         message.put("headers", this.headers != null ? this.headers : new HashMap<>());
         message.put("content-type", "application/json");
         message.put("properties", Map.of(
-                "delivery_mode", 2,   // 持久化消息
+                "delivery_tag", UUID.randomUUID().toString(),
+//                "delivery_mode", 2,   // 持久化消息
                 "correlation_id", this.id
         ));
 
