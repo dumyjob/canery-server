@@ -52,7 +52,7 @@ public class DeployServiceImpl implements DeployService {
         log.info("生成部署任务:{}", deployment);
         // 4. 异步调用Python Celery任务（通过Redis消息队列）
         String celeryTaskId = pythonDeployClient.triggerDeployTask(
-                deployment.getId(),
+                deployment,
                 config.getCloudConfig(),
                 config.getEnvVariables()
         );

@@ -16,10 +16,14 @@ app = Celery('tasks', broker='redis://localhost:6379/0',
              accept_content=['json'])  # 仅接受这两种格式)
 
 
-# 默认队列celery
+# 默认队列celery; 通过字典解包增强灵活性，推荐用于复杂业务
 @app.task(bind=True, max_retries=3)
-def deploy_task(self, task_id, git_repo, branch, maven_profile):
+def deploy_task(self, task_id, config):
     try:
+        git_repo = config.get("git_repo")
+        branch = config.get("branch", "main")
+        maven_profile = config.get('maven_profile')
+
         # 任务链：Git Checkout → Maven Build → Deploy
         workflow = chain(
             git_checkout.s(task_id, git_repo, branch),

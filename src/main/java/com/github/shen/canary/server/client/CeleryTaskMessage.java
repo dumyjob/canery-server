@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.Data;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Data
@@ -22,16 +25,13 @@ public class CeleryTaskMessage {
     }
 
 
-    private String lang = "py";
-
     // Required Fields
     private String task;       // Celery任务名，如"tasks.deploy_ros_task"
     private String id;        // 任务唯一ID，如UUID
 
-    private String deliveryTag;
 
     // Optional Fields
-    private List<?> args;            // 位置参数列表
+    private Map<String, Object> args;            // 位置参数列表, 使用字典解包增强灵活性
     private Map<String, ?> kwargs;   // 关键字参数（Key-Value）
     private Integer retries;         // 已重试次数（默认0）
     private String eta;              // 任务执行时间（ISO 8601 UTC时间）
@@ -46,8 +46,6 @@ public class CeleryTaskMessage {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("task", this.task);
         body.put("id", this.id);
-        body.put("delivery_tag", this.deliveryTag);
-        body.put("lang", this.lang);
         body.put("args", this.args != null ? this.args : Collections.emptyList());
         body.put("kwargs", this.kwargs != null ? this.kwargs : Collections.emptyMap());
         body.put("retries", this.retries != null ? this.retries : 0);
@@ -62,16 +60,44 @@ public class CeleryTaskMessage {
 
         // 构造最终协议消息体
         Map<String, Object> message = new LinkedHashMap<>();
-        message.put("body", objectMapper.writeValueAsString(body)); // 必须字符串化
-        message.put("headers", this.headers != null ? this.headers : new HashMap<>());
-        message.put("content-type", "application/json");
+        // json -> bas64
+        message.put("body", Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(body).getBytes(StandardCharsets.UTF_8))); // 必须字符串化
+
+        Map<String, Object> basicHeaders = new HashMap<>(this.headers);
+        basicHeaders.put("lang", "py");
+        basicHeaders.put("task", this.task);
+        basicHeaders.put("id", this.id);
+        basicHeaders.put("retries", 3);
+        basicHeaders.put("eta", isoTime());
+
+
+        message.put("headers", basicHeaders);
         message.put("properties", Map.of(
-                "delivery_tag", UUID.randomUUID().toString(),
-//                "delivery_mode", 2,   // 持久化消息
-                "correlation_id", this.id
+                "delivery_mode", 2,   // 持久化消息
+                "delivery_info", Map.of(
+                        "exchange", "celery",
+                        "routing_key", "celery"
+                ),
+                "body_encoding", "base64",
+                "correlation_id", this.id,
+                "delivery_tag", UUID.randomUUID().toString()
         ));
+        message.put("content-encoding", "utf-8");
+        message.put("content-type", "application/json");
 
         return objectMapper.writeValueAsString(message);
+    }
+
+
+    public String isoTime() {
+        // 获取当前时间的Instant对象（UTC时间，含纳秒）
+        Instant instant = Instant.now();
+
+        // 定义格式化器：保留9位纳秒，并以Z表示时区
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSX")
+                .withZone(ZoneOffset.UTC);
+
+        return formatter.format(instant);
     }
 
     /**
