@@ -8,6 +8,9 @@ from celery import Celery
 from celery import chain
 from celery import group
 
+import logging
+
+logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO - 系统启动完成 [2,6](@ref)
 # from deploy_ros import  deploy_ros
 
 app = Celery('tasks', broker='redis://localhost:6379/0',
@@ -15,10 +18,18 @@ app = Celery('tasks', broker='redis://localhost:6379/0',
              result_serializer='json',  # 结果序列化为 JSON
              accept_content=['json'])  # 仅接受这两种格式)
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filename='app.log'
+)
+
+
 
 # 默认队列celery; 通过字典解包增强灵活性，推荐用于复杂业务
 @app.task(bind=True, max_retries=3)
 def deploy_task(self, task_id, config):
+    logging.info("run task:" + task_id + ", config:" + str(config))
     try:
         git_repo = config.get("git_repo")
         branch = config.get("branch", "main")
@@ -50,7 +61,7 @@ def git_checkout(task_id, repo_url, branch):
             cwd=None,task_id=task_id
         )
         return work_dir
-    except subprocess.CalledProcessError | Exception as e:
+    except subprocess.CalledProcessError as e:
         update_status(task_id, "FAILED", logs=str(e), progress=20)
         # 清理临时目录
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -142,7 +153,9 @@ def deploy_to_k8s(jar_path, task_id):
 
 
 # 新增实时日志捕获函数
+@app.task
 def _stream_command(cmd, cwd, task_id,step_identifier=None):
+    logging.info("task_id: " + task_id + ",run command:" + str(cmd))
     """实时捕获子进程输出并推送日志"""
     process = subprocess.Popen(
         cmd,
