@@ -57,7 +57,7 @@ public class PythonDeployClient {
             putIfNotNull(vars, "env_vars", envVars);
             putIfNotNull(vars, "cloud_config", cloudConfig);
             CeleryTaskMessage message = CeleryTaskMessage.builder(deployTaskName, taskId)
-                    .args(vars)
+                    .args(Arrays.asList(taskId, vars))
                     .build();
 
             // 序列化并推送到Redis队列

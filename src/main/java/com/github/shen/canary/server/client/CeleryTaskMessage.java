@@ -25,13 +25,17 @@ public class CeleryTaskMessage {
     }
 
 
+    public static String format(Map<String, Object> vars) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(vars);
+    }
+
     // Required Fields
     private String task;       // Celery任务名，如"tasks.deploy_ros_task"
     private String id;        // 任务唯一ID，如UUID
 
 
     // Optional Fields
-    private Map<String, Object> args;            // 位置参数列表, 使用字典解包增强灵活性
+    private List<?> args;        // 位置参数列表, 使用字典解包增强灵活性
     private Map<String, ?> kwargs;   // 关键字参数（Key-Value）
     private Integer retries;         // 已重试次数（默认0）
     private String eta;              // 任务执行时间（ISO 8601 UTC时间）
