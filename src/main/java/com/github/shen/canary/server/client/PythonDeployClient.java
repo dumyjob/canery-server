@@ -64,7 +64,7 @@ public class PythonDeployClient {
                     "  },\n" +
                     "  \"content-encoding\": \"utf-8\",\n" +
                     "  \"content-type\": \"application/json\"\n" +
-                    "}";
+                    "}\n";
             redisTemplate.opsForList().leftPush(queue, celeryMessage);
 
             return taskId; // 使用自定义ID便于追踪
