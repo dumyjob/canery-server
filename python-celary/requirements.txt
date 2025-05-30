@@ -3,3 +3,5 @@ celery~=5.5.2
 fastapi~=0.115.12
 PyYAML~=6.0.2
 kubernetes~=32.0.1
+urllib3~=2.4.0
+setuptools~=80.7.1

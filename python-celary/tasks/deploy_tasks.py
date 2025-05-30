@@ -1,15 +1,19 @@
 # tasks/deploy_tasks.py
 import logging
 import os
+import platform
 import shutil
 import subprocess
 import sys
+import traceback
 from datetime import datetime
+from pathlib import Path
 
 import requests
 from celery import Celery
 from celery import chain
 from celery import group
+from urllib3.exceptions import MaxRetryError, NewConnectionError
 
 # from deploy_ros import  deploy_ros
 
@@ -43,7 +47,7 @@ def deploy_task(self, task_id, config):
             group(deploy_to_k8s.s(task_id))
         )
 
-        # 尝试部署到2个集群
+
         workflow.apply_async()
     except Exception as e:
         self.retry(exc=e, countdown=60)
@@ -53,7 +57,7 @@ def deploy_task(self, task_id, config):
 def git_checkout(task_id, repo_url, branch):
     update_status(task_id, "CHECKING_OUT")
     # 创建临时目录
-    work_dir = f"/tmp/{task_id}"
+    work_dir = f"canary_home/tmp/{task_id}"
     try:
         os.makedirs(work_dir, exist_ok=True)
         # 执行 Git 命令
@@ -63,6 +67,7 @@ def git_checkout(task_id, repo_url, branch):
         )
         return work_dir
     except subprocess.CalledProcessError as e:
+        print(f"\033[31m[ERROR] {str(e)}\033[0m", file=sys.stderr)
         update_status(task_id, "FAILED", logs=str(e), progress=20)
         # 清理临时目录
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -157,66 +162,108 @@ def deploy_to_k8s(jar_path, task_id):
 @app.task
 def _stream_command(cmd, cwd, task_id,step_identifier=None):
     logging.info("task_id: " + task_id + ",run command:" + str(cmd))
+    sys.stdout.write("task_id: " + task_id + ",run command:" + str(cmd) + '\n')
     """实时捕获子进程输出并推送日志"""
+
+    requests.post(
+        f"http://localhost:8080/api/tasks/{task_id}/log",
+        json={
+            "timestamp": datetime.now().isoformat(),
+            "content": f"开始执行命令: {str(cmd)}",
+            "type": "stdout"
+        }
+    )
+    if platform.system() == "Windows":
+        shell_cmd = ["cmd", "/c"] + cmd
+    else:
+        shell_cmd = ["/bin/sh", "-c"] + [" ".join(cmd)]
+
     process = subprocess.Popen(
-        cmd,
+        shell_cmd,
         cwd=cwd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,  # error日志合并到stdout
-        text=True,
-        bufsize=1
+        stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
+        text=True,  # 以文本模式处理输出[8](@ref)
+        bufsize=1,  # 行缓冲模式[5,8](@ref)
+        universal_newlines=True
     )
 
-    # 逐行读取输出
+    sys.stdout.write(str(cmd) + '\n')
+    # 实时输出捕获逻辑
     while True:
         line = process.stdout.readline()
-        if not line:  # 空行表示流结束
-            if process.poll() is not None:  # 确认进程已终止
-                # 读取所有残留输出
-                remaining = process.stdout.read()
-                if remaining:
-                    for rem_line in remaining.splitlines():
-                        print(f"\033[31m[ERROR] {rem_line}\033[0m", file=sys.stderr)
+        if not line:
+            if process.poll() is not None:  # 进程结束则退出循环[9](@ref)
+                break
+            continue
 
-            break
-        if line:
-            if "ERROR" in line:
-                print(f"\033[31m[ERROR] {line}\033[0m", file=sys.stderr)
-            else:
-                # 新增控制台输出（带颜色标记）
-                print(f"\033[32m[CMD-LOG] {line.strip()}\033[0m")  # 绿色字体标识[1](@ref)
-            # 推送实时日志到后端
+        try:
             requests.post(
                 f"http://localhost:8080/api/tasks/{task_id}/log",
                 json={
                     "timestamp": datetime.now().isoformat(),
-                    "content": line.strip(),
+                    "content": line.strip(),  # 去除首尾空白
                     "type": "stdout"
                 }
             )
+        except Exception as e:
+            logging.error(f"日志推送失败: {str(e)}")
+            # 失败时回退到本地日志记录
+            logging.info(line.strip())
+        sys.stdout.write(line)  # 实时打印到控制台[5](@ref)
+        sys.stdout.flush()  # 强制刷新缓冲区[9](@ref)
 
-            # 进度更新逻辑
-            if step_identifier:
-                for keyword, progress in step_identifier.items():
-                    if keyword in line:
-                        requests.patch(
-                            f"http://java-service/api/tasks/{task_id}/progress",
-                            json={"progress": progress}
-                        )
-
-    if process.returncode != 0:
-        raise subprocess.CalledProcessError(process.returncode, cmd)
+    # 获取最终执行状态
+    exit_code = process.poll()
+    # 推送最终状态
+    status_msg = f"命令执行完成，退出码: {exit_code}"
+    requests.post(
+        f"http://localhost:8080/api/tasks/{task_id}/log",
+        json={
+            "timestamp": datetime.now().isoformat(),
+            "content": status_msg,
+            "type": "stdout"
+        }
+    )
+    if exit_code != 0:
+        raise subprocess.CalledProcessError(
+            exit_code, cmd,
+            output=line  # 包含最后错误信息的行[1](@ref)
+        )
+    return exit_code
 
 
 
 def update_status(task_id, status, logs=None, progress=None):
     # 调用 Java 服务的状态更新 API
-    requests.patch(
-        f"http://java-service/api/tasks/{task_id}/status",
-        json={"status": status, "logs": logs, progress: progress}
+    try:
+        requests.patch(
+            f"http://localhost:8080/api/tasks/{task_id}/status",
+            json={"status": status, "logs": logs, progress: progress}
+        )
+    except (MaxRetryError, NewConnectionError) as e:
+        # 记录错误日志（含堆栈跟踪）
+        error_msg = f"请求失败: {e}\n{traceback.format_exc()}"
+        logging.error(error_msg)
+        # 可选：控制台输出简化信息
+        print(f"错误: {e}（详见日志文件app.log）")
+
+
+if __name__ == "__main__":
+    # 在此调用目标方法并传入测试参数
+    target_dir = Path("/canary_home")
+    # 检查并创建目录（如果不存在）
+    target_dir.mkdir(parents=True, exist_ok=True)  # 自动创建父目录
+
+    # 验证是否为有效目录
+    if not target_dir.is_dir():
+        raise NotADirectoryError(f"无效目录: {target_dir}")
+
+    result = _stream_command(
+        ["git", "clone", "--branch", 'master', 'https://github.com/dumyjob/canery-ui.git', './tmp/227'],
+        cwd=target_dir, task_id="1"
     )
-
-
+    print(f"调试输出: {result}")
 
 
 #

@@ -44,7 +44,7 @@ public class TaskLog {
 
     public TaskLog(String taskId, LogEntry log) {
         this.taskId = taskId;
-        this.step = LogStep.valueOf( log.getStep());
+//        this.step = LogStep.valueOf( log.getStep());
         this.level = LogLevel.valueOf(log.getLevel()) ;
         this.content = log.getContent();
     }

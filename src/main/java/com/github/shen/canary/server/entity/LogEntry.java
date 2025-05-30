@@ -1,8 +1,10 @@
 package com.github.shen.canary.server.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class LogEntry {
 
     private String timestamp;
