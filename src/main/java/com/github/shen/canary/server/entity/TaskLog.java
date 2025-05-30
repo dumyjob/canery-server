@@ -1,5 +1,6 @@
 package com.github.shen.canary.server.entity;
 
+import com.github.shen.canary.server.web.request.LogEntry;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -44,8 +45,8 @@ public class TaskLog {
 
     public TaskLog(String taskId, LogEntry log) {
         this.taskId = taskId;
-//        this.step = LogStep.valueOf( log.getStep());
-        this.level = LogLevel.valueOf(log.getLevel()) ;
+        this.step = log.getStep() != null ? LogStep.valueOf(log.getStep()) : LogStep.CHECKOUT;
+        this.level = log.getLevel() != null ? LogLevel.valueOf(log.getLevel()) : LogLevel.INFO;
         this.content = log.getContent();
     }
 

@@ -1,4 +1,4 @@
-package com.github.shen.canary.server.entity;
+package com.github.shen.canary.server.web.request;
 
 import lombok.Data;
 import lombok.ToString;
