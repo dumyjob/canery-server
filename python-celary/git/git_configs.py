@@ -41,6 +41,7 @@ class GitConfig:
 
         # 尝试不同位置的配置文件
         search_paths = [
+
             "git_config.ini",
             os.path.expanduser("~/.git_config.ini"),
             "/etc/git_config.ini"

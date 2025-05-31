@@ -41,7 +41,7 @@ def deploy_task(self, task_id, config):
     try:
         git_repo = config.get("git_repos")
         branch = config.get("branch", "main")
-        maven_profile = config.get('maven_profile')
+        maven_profile = config.get('maven_profile', 'dev')
 
         # 任务链：Git Checkout → Maven Build → Deploy
         workflow = chain(
@@ -62,10 +62,17 @@ def git_checkout(task_id, repo_url: str, branch):
     config = git_config.get_auth_config(repo_url)
     sys.stdout.write("auth_url:" + config['auth_url'])
     # 创建临时目录 (windows: D:/canary_home/ linux:
-    work_dir = os.path.join('canary_home', 'tmp', task_id)
+    # /canary_home/tmp/{task_id} windows直接创建可能没权限
+    work_dir = Path.home() / "canary_home" / "tmp" / str(task_id)
     try:
         push_cmd(task_id, f'mkdir {work_dir}')
-        os.makedirs(work_dir, exist_ok=True)
+        work_dir.mkdir(parents=True, exist_ok=True)
+        if work_dir.exists() and work_dir.is_dir():
+            print(f"目录 {work_dir} 创建成功！")
+        else:
+            print(f"目录创建异常，请检查路径：{work_dir}")
+        work_dir = str(work_dir)
+
         # 执行 Git 命令
         _stream_command(
             ["git", "clone", "--branch", branch, config['auth_url'], work_dir],
@@ -96,20 +103,6 @@ def git_checkout(task_id, repo_url: str, branch):
         # 清理临时目录
         shutil.rmtree(work_dir, ignore_errors=True)
         raise
-
-
-def push_commit(task_id, commit_id, commit_message):
-    try:
-        requests.put(
-            f"http://localhost:8080/api/tasks/{task_id}/commit-id",
-            json={"commitId": commit_id, "message": commit_message}
-        )
-    except (MaxRetryError, NewConnectionError) as e:
-        # 记录错误日志（含堆栈跟踪）
-        error_msg = f"请求失败: {e}\n{traceback.format_exc()}"
-        logging.error(error_msg)
-        # 可选：控制台输出简化信息
-        print(f"错误: {e}（详见日志文件app.log）")
 
 
 @app.task
@@ -198,7 +191,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     logging.info("task_id: " + task_id + ",run command:" + str(cmd))
     sys.stdout.write("task_id: " + task_id + ",run command:" + str(cmd) + '\n')
     """实时捕获子进程输出并推送日志"""
-    push_cmd(task_id, cmd)
+    push_cmd(task_id, format_cmd(cmd))
 
     if platform.system() == "Windows":
         shell_cmd = ["cmd", "/c"] + cmd
@@ -212,8 +205,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
         bufsize=1,  # 行缓冲模式[5,8](@ref)
-        universal_newlines=True,
-        encoding='utf-8'
+        universal_newlines=True
     )
 
     sys.stdout.write(str(cmd) + '\n')
@@ -225,19 +217,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
                 break
             continue
 
-        try:
-            requests.post(
-                f"http://localhost:8080/api/tasks/{task_id}/log",
-                json={
-                    "timestamp": datetime.now().isoformat(),
-                    "content": line.strip(),  # 去除首尾空白
-                    "type": "stdout"
-                }
-            )
-        except Exception as e:
-            logging.error(f"日志推送失败: {str(e)}")
-            # 失败时回退到本地日志记录
-            logging.info(line.strip())
+        push_logs(task_id, line)
         sys.stdout.write(line)  # 实时打印到控制台[5](@ref)
         sys.stdout.flush()  # 强制刷新缓冲区[9](@ref)
 
@@ -245,14 +225,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     exit_code = process.poll()
     # 推送最终状态
     status_msg = f"命令执行完成，退出码: {exit_code}"
-    requests.post(
-        f"http://localhost:8080/api/tasks/{task_id}/log",
-        json={
-            "timestamp": datetime.now().isoformat(),
-            "content": status_msg,
-            "type": "stdout"
-        }
-    )
+    push_logs(task_id, status_msg)
     if exit_code != 0:
         raise subprocess.CalledProcessError(
             exit_code, cmd,
@@ -260,6 +233,53 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
         )
     return exit_code
 
+
+def format_cmd(cmd_list):
+    """转换Maven命令列表为有效字符串"""
+    filtered_list = []
+    skip_next = False  # 标记是否跳过下一个元素（用于处理-P后的None）
+
+    for i, item in enumerate(cmd_list):
+        if skip_next:
+            skip_next = False
+            continue
+        if item == '-P' and i + 1 < len(cmd_list) and cmd_list[i + 1] is None:
+            skip_next = True  # 跳过-P和紧随的None
+            continue
+        if item is not None:
+            filtered_list.append(item)
+
+    return " ".join(filtered_list)
+
+
+def push_commit(task_id, commit_id, commit_message):
+    try:
+        requests.put(
+            f"http://localhost:8080/api/tasks/{task_id}/commit-id",
+            json={"commitId": commit_id, "message": commit_message}
+        )
+    except (MaxRetryError, NewConnectionError) as e:
+        # 记录错误日志（含堆栈跟踪）
+        error_msg = f"请求失败: {e}\n{traceback.format_exc()}"
+        logging.error(error_msg)
+        # 可选：控制台输出简化信息
+        print(f"错误: {e}（详见日志文件app.log）")
+
+
+def push_logs(task_id, line):
+    try:
+        requests.post(
+            f"http://localhost:8080/api/tasks/{task_id}/log",
+            json={
+                "timestamp": datetime.now().isoformat(),
+                "content": line.strip(),  # 去除首尾空白
+                "type": "stdout"
+            }
+        )
+    except Exception as e:
+        logging.error(f"日志推送失败: {str(e)}")
+        # 失败时回退到本地日志记录
+        logging.info(line.strip())
 
 def push_cmd(task_id, cmd, logs=None, progress=None):
     # 调用 Java 服务的状态更新 API
@@ -296,19 +316,23 @@ def update_status(task_id, status, logs=None, progress=None):
 
 if __name__ == "__main__":
     # 在此调用目标方法并传入测试参数
-    target_dir = Path("/canary_home")
+    # target_dir = Path("/canary_home")
     # 检查并创建目录（如果不存在）
-    target_dir.mkdir(parents=True, exist_ok=True)  # 自动创建父目录
+    # target_dir.mkdir(parents=True, exist_ok=True)  # 自动创建父目录
 
     # 验证是否为有效目录
-    if not target_dir.is_dir():
-        raise NotADirectoryError(f"无效目录: {target_dir}")
+    # if not target_dir.is_dir():
+    #     raise NotADirectoryError(f"无效目录: {target_dir}")
 
-    result = _stream_command(
-        ["git", "clone", "--branch", 'master', 'https://github.com/dumyjob/canery-ui.git', './tmp/227'],
-        cwd=target_dir, task_id="1"
-    )
-    print(f"调试输出: {result}")
+    # result = _stream_command(
+    #     ["git", "clone", "--branch", 'master', 'https://github.com/dumyjob/canery-ui.git', './tmp/227'],
+    #     cwd=target_dir, task_id="1"
+    # )
+    # print(f"调试输出: {result}")
+
+    format_cmd(['mvn', 'clean', 'package', '-P', None, '-DskipTests'])
+
+
 
 
 #
