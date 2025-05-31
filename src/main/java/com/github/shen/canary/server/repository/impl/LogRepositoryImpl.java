@@ -70,8 +70,8 @@ private static final ObjectMapper objectMapper = new ObjectMapper();
      */
     private TaskLog convertToTaskLog(Map<Object, Object> valueMap) {
         try {
-            // 从Redis记录的"value"字段获取JSON字符串
-            String json = (String) valueMap.get("value");
+            // 从Redis记录的"payload"字段获取JSON字符串
+            String json = (String) valueMap.get("payload");
             return objectMapper.readValue(json, TaskLog.class);
         } catch (Exception e) {
             throw new RuntimeException("日志解析失败", e);

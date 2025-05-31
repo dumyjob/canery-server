@@ -50,14 +50,13 @@ public class TaskController {
     }
 
 
-    @GetMapping("log")
+    @GetMapping("logs")
     public ResponseEntity<List<LogEntry>> getLogs(@PathVariable String taskId) {
         log.info("get taskId: {} logs", taskId);
         // 从redis获取
         List<TaskLog> logs = logRepository.get(taskId);
         return ResponseEntity.ok(LogConverter.convert(logs));
     }
-
 
     // 获取部署任务详情
     @GetMapping
@@ -71,15 +70,6 @@ public class TaskController {
             .body(deployment.get());
     }
 
-    @GetMapping("log")
-    public void receiveLog(@PathVariable String taskId) {
-        log.info("get taskId: {} 's log", taskId);
-        // 存储到数据库
-//        logRepository.save(new TaskLog(taskId, logEntry));
-//
-//        // 广播到WebSocket频道
-//        messagingTemplate.convertAndSend("/topic/logs/" + taskId, logEntry);
-    }
 
     @PatchMapping("status")
     public void taskStatus(@PathVariable String taskId, @RequestBody StatusEntry statusEntry) {
