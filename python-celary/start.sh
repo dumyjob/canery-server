@@ -12,6 +12,10 @@ celery -A tasks.deploy_tasks beat --loglevel=info &
 # http://localhost:5555
 celery -A tasks.deploy_tasks flower --port=5555
 
-
-
 # docker compose快速启动 https://wenku.csdn.net/doc/7wfh0p9p72
+
+## 环境要求
+git
+maven
+## 如果是java,还需要jdk/jre
+k8s

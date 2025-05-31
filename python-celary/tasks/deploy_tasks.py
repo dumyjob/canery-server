@@ -201,6 +201,7 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     process = subprocess.Popen(
         shell_cmd,
         cwd=cwd,
+        shell=True,  # 调用系统 Shell（如 cmd.exe 或 bash）
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
