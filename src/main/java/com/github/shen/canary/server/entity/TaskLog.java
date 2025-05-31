@@ -45,6 +45,7 @@ public class TaskLog {
 
     public TaskLog(String taskId, LogEntry log) {
         this.taskId = taskId;
+        this.logTime = LocalDateTime.now();
         this.step = log.getStep() != null ? LogStep.valueOf(log.getStep()) : LogStep.CHECKOUT;
         this.level = log.getLevel() != null ? LogLevel.valueOf(log.getLevel()) : LogLevel.INFO;
         this.content = log.getContent();

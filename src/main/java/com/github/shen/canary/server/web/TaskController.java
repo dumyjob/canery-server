@@ -1,5 +1,6 @@
 package com.github.shen.canary.server.web;
 
+import com.github.shen.canary.server.converter.LogConverter;
 import com.github.shen.canary.server.entity.Deployment;
 import com.github.shen.canary.server.entity.TaskLog;
 import com.github.shen.canary.server.exceptions.ResourceNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -45,6 +47,15 @@ public class TaskController {
         
         // 广播到WebSocket频道
         messagingTemplate.convertAndSend("/topic/logs/" + taskId, logEntry);
+    }
+
+
+    @GetMapping("log")
+    public ResponseEntity<List<LogEntry>> getLogs(@PathVariable String taskId) {
+        log.info("get taskId: {} logs", taskId);
+        // 从redis获取
+        List<TaskLog> logs = logRepository.get(taskId);
+        return ResponseEntity.ok(LogConverter.convert(logs));
     }
 
 

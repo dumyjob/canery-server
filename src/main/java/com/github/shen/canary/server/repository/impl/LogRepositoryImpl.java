@@ -7,9 +7,17 @@ import com.github.shen.canary.server.repository.LogRepository;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -39,6 +47,34 @@ private static final ObjectMapper objectMapper = new ObjectMapper();
                     .ofObject(json)
                         .withStreamKey(streamKey)
         );
+    }
 
+    @Override
+    public List<TaskLog> get(final String taskId) {
+        String streamKey = "logs:" + taskId;
+        List<MapRecord<String, Object, Object>> records = redisTemplate.opsForStream().range(
+            streamKey,
+            Range.unbounded()
+        );
+
+        if (CollectionUtils.isEmpty(records)) {
+            return Collections.emptyList();
+        }
+        return records.stream()
+            .map(record -> convertToTaskLog(record.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * 转换Redis记录为TaskLog对象
+     */
+    private TaskLog convertToTaskLog(Map<Object, Object> valueMap) {
+        try {
+            // 从Redis记录的"value"字段获取JSON字符串
+            String json = (String) valueMap.get("value");
+            return objectMapper.readValue(json, TaskLog.class);
+        } catch (Exception e) {
+            throw new RuntimeException("日志解析失败", e);
+        }
     }
 }
