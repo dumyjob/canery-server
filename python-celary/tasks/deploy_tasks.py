@@ -60,10 +60,11 @@ def deploy_task(self, task_id, config):
 def git_checkout(task_id, repo_url: str, branch):
     update_status(task_id, "CHECKING_OUT")
     config = git_config.get_auth_config(repo_url)
-    sys.stdout.write("auth_url" + config['auth_url'])
-    # 创建临时目录
-    work_dir = f"canary_home/tmp/{task_id}"
+    sys.stdout.write("auth_url:" + config['auth_url'])
+    # 创建临时目录 (windows: D:/canary_home/ linux:
+    work_dir = os.path.join('canary_home', 'tmp', task_id)
     try:
+        push_cmd(task_id, f'mkdir {work_dir}')
         os.makedirs(work_dir, exist_ok=True)
         # 执行 Git 命令
         _stream_command(
@@ -82,7 +83,8 @@ def git_checkout(task_id, repo_url: str, branch):
         commit_message = subprocess.check_output(
             ["git", "log", "-1", "--pretty=format:%s"],
             cwd=work_dir,
-            text=True
+            text=True,
+            encoding='utf-8'
         ).strip()
 
         push_commit(task_id, commit_id, commit_message)
@@ -196,15 +198,8 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     logging.info("task_id: " + task_id + ",run command:" + str(cmd))
     sys.stdout.write("task_id: " + task_id + ",run command:" + str(cmd) + '\n')
     """实时捕获子进程输出并推送日志"""
+    push_cmd(task_id, cmd)
 
-    requests.post(
-        f"http://localhost:8080/api/tasks/{task_id}/log",
-        json={
-            "timestamp": datetime.now().isoformat(),
-            "content": f"开始执行命令: {str(cmd)}",
-            "type": "stdout"
-        }
-    )
     if platform.system() == "Windows":
         shell_cmd = ["cmd", "/c"] + cmd
     else:
@@ -217,7 +212,8 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
         bufsize=1,  # 行缓冲模式[5,8](@ref)
-        universal_newlines=True
+        universal_newlines=True,
+        encoding='utf-8'
     )
 
     sys.stdout.write(str(cmd) + '\n')
@@ -265,6 +261,23 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     return exit_code
 
 
+def push_cmd(task_id, cmd, logs=None, progress=None):
+    # 调用 Java 服务的状态更新 API
+    try:
+        requests.post(
+            f"http://localhost:8080/api/tasks/{task_id}/log",
+            json={
+                "timestamp": datetime.now().isoformat(),
+                "content": f"开始执行命令: {str(cmd)}",
+                "type": "stdout"
+            }
+        )
+    except (MaxRetryError, NewConnectionError) as e:
+        # 记录错误日志（含堆栈跟踪）
+        error_msg = f"请求失败: {e}\n{traceback.format_exc()}"
+        logging.error(error_msg)
+        # 可选：控制台输出简化信息
+        print(f"错误: {e}（详见日志文件app.log）")
 
 def update_status(task_id, status, logs=None, progress=None):
     # 调用 Java 服务的状态更新 API
