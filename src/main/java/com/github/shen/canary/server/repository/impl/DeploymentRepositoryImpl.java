@@ -3,6 +3,7 @@ package com.github.shen.canary.server.repository.impl;
 import com.github.shen.canary.server.dao.DeploymentMapper;
 import com.github.shen.canary.server.entity.Deployment;
 import com.github.shen.canary.server.exceptions.DatabaseException;
+import com.github.shen.canary.server.exceptions.ResourceNotFoundException;
 import com.github.shen.canary.server.repository.DeploymentRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,17 @@ public class DeploymentRepositoryImpl implements DeploymentRepository {
     public Optional<Deployment> findById(final String deploymentId) {
         Deployment deployment = deploymentMapper.selectByPrimaryKey(deploymentId);
         return Optional.of(deployment);
+    }
+
+
+    @Override
+    public Deployment get(final String deploymentId) {
+        final Optional<Deployment> deployment = findById(deploymentId);
+        if (deployment.isEmpty()) {
+            throw new ResourceNotFoundException("未找到对应的部署任务:" + deploymentId);
+        }
+
+        return deployment.get();
     }
 
     @Override

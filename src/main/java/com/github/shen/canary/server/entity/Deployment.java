@@ -20,6 +20,9 @@ public class Deployment {
     private String gitRepo;
     private String branch;
 
+    @Column(name = "commit_id")
+    private String commitId;
+
     private String env;
     private String status;      // PENDING, DEPLOYING, SUCCESS, FAILED
 
@@ -30,4 +33,9 @@ public class Deployment {
     private LocalDateTime startTime;
     @Column(name = "end_time")
     private LocalDateTime endTime;
+
+    public Deployment deployed(final String commitId) {
+        this.commitId = commitId;
+        return this;
+    }
 }

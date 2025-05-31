@@ -65,6 +65,16 @@ def git_checkout(task_id, repo_url, branch):
             ["git", "clone", "--branch", branch, repo_url, work_dir],
             cwd=None,task_id=task_id
         )
+
+        # 获取最后一次commit ID [1,4](@ref)
+        commit_id = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=work_dir,
+            text=True
+        ).strip()
+
+        push_commit_id(task_id, commit_id)
+
         return work_dir
     except subprocess.CalledProcessError as e:
         print(f"\033[31m[ERROR] {str(e)}\033[0m", file=sys.stderr)
@@ -73,6 +83,18 @@ def git_checkout(task_id, repo_url, branch):
         shutil.rmtree(work_dir, ignore_errors=True)
         raise
 
+
+def push_commit_id(task_id, commit_id):
+    try:
+        requests.put(
+            f"http://localhost:8080/api/tasks/{task_id}/commit-id/{commit_id}"
+        )
+    except (MaxRetryError, NewConnectionError) as e:
+        # 记录错误日志（含堆栈跟踪）
+        error_msg = f"请求失败: {e}\n{traceback.format_exc()}"
+        logging.error(error_msg)
+        # 可选：控制台输出简化信息
+        print(f"错误: {e}（详见日志文件app.log）")
 
 
 @app.task
@@ -153,9 +175,6 @@ def deploy_to_k8s(jar_path, task_id):
 
         update_status(task_id, "FAILED", logs=error_msg, progress=80)
         raise
-
-
-
 
 
 # 新增实时日志捕获函数

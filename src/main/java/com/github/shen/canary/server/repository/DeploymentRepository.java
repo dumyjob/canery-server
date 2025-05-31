@@ -10,6 +10,8 @@ public interface DeploymentRepository {
 
     Optional<Deployment> findById(String deploymentId);
 
+    Deployment get(String deploymentId);
+
     void update(Deployment deployment);
 
 }
