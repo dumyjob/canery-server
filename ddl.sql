@@ -100,3 +100,7 @@ CREATE TABLE deploy_tasks (
     end_time TIMESTAMP,
     PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部署任务表';
+
+
+
+

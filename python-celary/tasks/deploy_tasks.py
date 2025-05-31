@@ -14,6 +14,7 @@ from celery import Celery
 from celery import chain
 from celery import group
 from urllib3.exceptions import MaxRetryError, NewConnectionError
+from git.git_configs import GitConfig
 
 # from deploy_ros import  deploy_ros
 
@@ -21,6 +22,8 @@ app = Celery('tasks', broker='redis://localhost:6379/0',
              task_serializer='json',  # 任务参数序列化为 json
              result_serializer='json',  # 结果序列化为 JSON
              accept_content=['json'])  # 仅接受这两种格式)
+
+git_config = GitConfig()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,15 +57,17 @@ def deploy_task(self, task_id, config):
 
 
 @app.task
-def git_checkout(task_id, repo_url, branch):
+def git_checkout(task_id, repo_url: str, branch):
     update_status(task_id, "CHECKING_OUT")
+    config = git_config.get_auth_config(repo_url)
+    sys.stdout.write("auth_url" + config['auth_url'])
     # 创建临时目录
     work_dir = f"canary_home/tmp/{task_id}"
     try:
         os.makedirs(work_dir, exist_ok=True)
         # 执行 Git 命令
         _stream_command(
-            ["git", "clone", "--branch", branch, repo_url, work_dir],
+            ["git", "clone", "--branch", branch, config['auth_url'], work_dir],
             cwd=None,task_id=task_id
         )
 
