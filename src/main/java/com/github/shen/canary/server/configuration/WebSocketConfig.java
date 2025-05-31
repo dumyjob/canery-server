@@ -19,7 +19,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 通过 registerStompEndpoints 方法定义客户端连接端点，并支持 SockJS 兼容性：
-        registry.addEndpoint("/ws-logs").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/ws-logs")
+            .setAllowedOriginPatterns("*")
+            .withSockJS();
     }
 
     @Override

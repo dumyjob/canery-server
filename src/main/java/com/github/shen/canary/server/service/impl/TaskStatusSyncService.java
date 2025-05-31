@@ -47,9 +47,10 @@ public class TaskStatusSyncService {
     }
 
     private void updateDeploymentStatus(String deploymentId, CeleryTaskStatus status) {
-        deploymentRepo.findById(deploymentId).ifPresent(deployment -> {
+        deploymentRepo.findById(deploymentId)
+            .ifPresent(deployment -> {
             deployment.setStatus(mapStatus(status).name());
-            deploymentRepo.save(deployment);
+                deploymentRepo.update(deployment);
         });
     }
 
