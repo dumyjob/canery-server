@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -49,18 +50,21 @@ public class ReleaseController {
     }
 
     @PostMapping("/deploy/{releaseId}")
-    public ResponseEntity<Boolean> deploy(@PathVariable("releaseId") Long releaseId) {
+    public ResponseEntity<List<String>> deploy(@PathVariable("releaseId") Long releaseId) {
         // 根据发布单生成部署任务
         final Release release = releaseRepository.get(releaseId);
 
+        final List<String> deploys = new ArrayList<>();
         release.getReleaseProjects()
                 .forEach(releaseProject -> {
-                    deployService.deploySync(releaseProject.getProjectId(),
+                    final String deployId = deployService.deploySync(releaseProject.getProjectId(),
                             releaseProject.getBranch(),
                             release.getEnv());
+
+                    deploys.add(deployId);
                 });
 
-        return ResponseEntity.accepted().body(Boolean.TRUE);
+        return ResponseEntity.accepted().body(deploys);
     }
 
 }

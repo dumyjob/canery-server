@@ -89,6 +89,7 @@ CREATE TABLE deploy_tasks (
     id BIGINT AUTO_INCREMENT COMMENT '部署id',
     external_id  VARCHAR(255) NOT NULL default '' COMMENT 'Celery任务',
     project_id BIGINT NOT NULL COMMENT '项目ID',
+    env varchar(255) not null default 'dev' comment '部署环境|集群',
     status VARCHAR(20) NOT NULL,
     git_repo VARCHAR(255),
     branch VARCHAR(50),

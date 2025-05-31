@@ -27,7 +27,8 @@ public class DeploymentRepositoryImpl implements DeploymentRepository {
 
     @Override
     public Optional<Deployment> findById(final String deploymentId) {
-        return Optional.empty();
+        Deployment deployment = deploymentMapper.selectByPrimaryKey(deploymentId);
+        return Optional.of(deployment);
     }
 
     @Override
