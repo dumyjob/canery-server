@@ -2,6 +2,7 @@ package com.github.shen.canary.server.repository.impl;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.shen.canary.server.entity.TaskLog;
 import com.github.shen.canary.server.repository.LogRepository;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,7 @@ private static final ObjectMapper objectMapper = new ObjectMapper();
     static {
         // 关键配置：禁用 Unicode 转义
         objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+        objectMapper.registerModule(new JavaTimeModule());// 处理LocalDateTime
     }
 
 

@@ -5,6 +5,7 @@ import com.github.shen.canary.server.utils.CanaryTimer;
 import com.github.shen.canary.server.web.request.LogEntry;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,10 @@ public class LogConverter {
 
     public static LogEntry convert(final TaskLog taskLog) {
         LogEntry logEntry = new LogEntry();
-        logEntry.setTimestamp(CanaryTimer.formate(taskLog.getLogTime()));
+        logEntry.setTimestamp(
+            taskLog.getLogTime() != null
+                ? CanaryTimer.formate(taskLog.getLogTime())
+                : CanaryTimer.formate(LocalDateTime.now()));
         logEntry.setContent(taskLog.getContent());
         logEntry.setLevel(String.valueOf(taskLog.getLevel()));
         logEntry.setStep(String.valueOf(taskLog.getStep()));

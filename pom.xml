@@ -104,6 +104,12 @@
 			<artifactId>logbook-spring-boot-starter</artifactId>
 			<version>${logbook.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.13.0</version> <!-- 或更高版本 -->
+		</dependency>
 	</dependencies>
 
 	<build>
