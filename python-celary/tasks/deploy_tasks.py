@@ -73,7 +73,14 @@ def git_checkout(task_id, repo_url, branch):
             text=True
         ).strip()
 
-        push_commit_id(task_id, commit_id)
+        # 获取commit message（仅提交说明）[1,4](@ref)
+        commit_message = subprocess.check_output(
+            ["git", "log", "-1", "--pretty=format:%s"],
+            cwd=work_dir,
+            text=True
+        ).strip()
+
+        push_commit(task_id, commit_id, commit_message)
 
         return work_dir
     except subprocess.CalledProcessError as e:
@@ -84,10 +91,11 @@ def git_checkout(task_id, repo_url, branch):
         raise
 
 
-def push_commit_id(task_id, commit_id):
+def push_commit(task_id, commit_id, commit_message):
     try:
         requests.put(
-            f"http://localhost:8080/api/tasks/{task_id}/commit-id/{commit_id}"
+            f"http://localhost:8080/api/tasks/{task_id}/commit-id",
+            json={"commitId": commit_id, "message": commit_message}
         )
     except (MaxRetryError, NewConnectionError) as e:
         # 记录错误日志（含堆栈跟踪）

@@ -6,6 +6,7 @@ import com.github.shen.canary.server.entity.TaskLog;
 import com.github.shen.canary.server.exceptions.ResourceNotFoundException;
 import com.github.shen.canary.server.repository.DeploymentRepository;
 import com.github.shen.canary.server.repository.LogRepository;
+import com.github.shen.canary.server.web.request.CommitEntry;
 import com.github.shen.canary.server.web.request.LogEntry;
 import com.github.shen.canary.server.web.request.StatusEntry;
 import lombok.AllArgsConstructor;
@@ -39,11 +40,11 @@ public class TaskController {
 
     private final DeploymentRepository deploymentRepository;
 
-    @PutMapping("/commit-id/{commitId}")
-    public void deployedCommit(@PathVariable String taskId, @PathVariable String commitId) {
-        log.info("taskId: {},commit-id:{}", taskId, commitId);
+    @PutMapping("/commit-id")
+    public void deployedCommit(@PathVariable String taskId, @RequestBody CommitEntry commit) {
+        log.info("taskId: {},commit-id:{}", taskId, commit);
         final Deployment deployment = deploymentRepository.get(taskId);
-        deploymentRepository.update(deployment.deployed(commitId));
+        deploymentRepository.update(deployment.deployed(commit));
     }
 
 

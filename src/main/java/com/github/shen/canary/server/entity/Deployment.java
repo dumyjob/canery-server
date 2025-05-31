@@ -1,6 +1,12 @@
 package com.github.shen.canary.server.entity;
 
-import jakarta.persistence.*;
+import com.github.shen.canary.server.web.request.CommitEntry;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,6 +28,8 @@ public class Deployment {
 
     @Column(name = "commit_id")
     private String commitId;
+    @Column(name = "commit_message")
+    private String commitMessage;
 
     private String env;
     private String status;      // PENDING, DEPLOYING, SUCCESS, FAILED
@@ -34,8 +42,9 @@ public class Deployment {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    public Deployment deployed(final String commitId) {
-        this.commitId = commitId;
+    public Deployment deployed(final CommitEntry commit) {
+        this.commitId = commit.getCommitId();
+        this.commitMessage = commit.getMessage();
         return this;
     }
 }

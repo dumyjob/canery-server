@@ -94,6 +94,7 @@ CREATE TABLE deploy_tasks (
     git_repo VARCHAR(255),
     branch VARCHAR(50),
     commit_id varchar(255) COMMENT '部署任务branch上的commit-id',
+    commit_message varchar(255) COMMENT 'commit-id对应的commit-message',
     logs TEXT comment '日志',
     start_time TIMESTAMP,
     end_time TIMESTAMP,
