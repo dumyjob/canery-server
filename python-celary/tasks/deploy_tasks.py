@@ -39,6 +39,7 @@ logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO 
 def deploy_task(self, task_id, config):
     logging.info("run task:" + task_id + ", config:" + str(config))
     try:
+        project_name = config.get("project_name")
         git_repo = config.get("git_repos")
         branch = config.get("branch", "main")
         maven_profile = config.get('maven_profile', 'dev')
@@ -47,7 +48,7 @@ def deploy_task(self, task_id, config):
         workflow = chain(
             git_checkout.s(task_id, git_repo, branch),
             maven_build.s(task_id, maven_profile),
-            group(deploy_to_k8s.s(task_id))
+            group(deploy_to_k8s.s(task_id, project_name))
         )
 
 
@@ -152,26 +153,29 @@ def _get_build(task_id, work_dir):
 
 
 @app.task
-def deploy_to_k8s(jar_path, task_id):
+def deploy_to_k8s(jar_path, task_id, project_name):
     update_status(task_id, "DEPLOYING")
     try:
         # 分阶段执行部署命令
         commands = [
             # 构建 Docker 镜像
             {
-                "cmd": ["docker", "build", "-t", f"myapp:{task_id}", "--build-arg", f"JAR_FILE={jar_path}", "."],
+                "cmd": ["docker", "build", "-t", f"{project_name}:{task_id}",
+                        "--build-arg", f"JAR_FILE={jar_path}",
+                        "-f", "./springboot.dockerfile", "."],
                 "progress": 85,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
             },
             # 推送到镜像仓库
             {
-                "cmd": ["docker", "push", f"myregistry.com/myapp:{task_id}"],
+                "cmd": ["docker", "push", f"myregistry.com/{project_name}:{task_id}"],
                 "progress": 90,
                 "error_hint": "镜像推送失败，请检查仓库权限"
             },
             # 更新 Kubernetes 部署
             {
-                "cmd": ["kubectl", "set", "image", "deployment/myapp", f"myapp=myregistry.com/myapp:{task_id}"],
+                "cmd": ["kubectl", "set", "image", f"deployment/{project_name}",
+                        f"{project_name}=myregistry.com/{project_name}:{task_id}"],
                 "progress": 95,
                 "error_hint": "K8s更新失败，请检查deployment配置"
             }

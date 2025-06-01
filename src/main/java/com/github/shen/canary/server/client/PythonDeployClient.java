@@ -3,7 +3,9 @@ package com.github.shen.canary.server.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.shen.canary.server.entity.CeleryTaskStatus;
 import com.github.shen.canary.server.entity.Deployment;
+import com.github.shen.canary.server.entity.Project;
 import com.github.shen.canary.server.exceptions.DeploymentException;
+import com.github.shen.canary.server.service.impl.DeployConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -45,17 +47,20 @@ public class PythonDeployClient {
     /**
      * 发送任务到Celery（通过Redis队列）
      */
-    public String triggerDeployTask(Deployment deployment, String cloudConfig, Map<String, String> envVars) {
+    public String triggerDeployTask(Deployment deployment,
+        final DeployConfig config,
+        final Project project) {
         try {
             final String taskId = deployment.getId();
             // 构建Celery消息协议
 
             Map<String, Object> vars = new HashMap<>();
             putIfNotNull(vars, "git_repos", deployment.getGitRepo());
+            putIfNotNull(vars, "project_name", project.getName());
             putIfNotNull(vars, "branch", deployment.getBranch());
             putIfNotNull(vars, "env", deployment.getEnv());
-            putIfNotNull(vars, "env_vars", envVars);
-            putIfNotNull(vars, "cloud_config", cloudConfig);
+            putIfNotNull(vars, "env_vars", config.getEnvVariables());
+            putIfNotNull(vars, "cloud_config", config.getCloudConfig());
             CeleryTaskMessage message = CeleryTaskMessage.builder(deployTaskName, taskId)
                     .args(Arrays.asList(taskId, vars))
                     .build();
