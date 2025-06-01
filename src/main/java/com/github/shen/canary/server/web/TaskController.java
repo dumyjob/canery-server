@@ -83,6 +83,9 @@ public class TaskController {
     @PatchMapping("status")
     public void taskStatus(@PathVariable String taskId, @RequestBody StatusEntry statusEntry) {
         log.info("taskId: {},status-log:{}", taskId, statusEntry);
+        logRepository.save(new TaskLog(taskId, statusEntry));
+
+        // TODO 后续的状态/step更新
     }
 
 

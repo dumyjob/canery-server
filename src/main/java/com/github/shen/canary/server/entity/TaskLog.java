@@ -1,6 +1,7 @@
 package com.github.shen.canary.server.entity;
 
 import com.github.shen.canary.server.web.request.LogEntry;
+import com.github.shen.canary.server.web.request.StatusEntry;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,10 +55,18 @@ public class TaskLog {
 
     public TaskLog(String taskId, LogEntry log) {
         this.taskId = taskId;
-        this.logTime = LocalDateTime.now();
+        this.logTime = LocalDateTime.now(); // 看能不能获取实时时间 todo
         this.step = log.getStep() != null ? LogStep.valueOf(log.getStep()) : LogStep.CHECKOUT;
         this.level = log.getLevel() != null ? LogLevel.valueOf(log.getLevel()) : LogLevel.INFO;
         this.content = log.getContent();
+    }
+
+    public TaskLog(final String taskId, final StatusEntry statusEntry) {
+        this.taskId = taskId;
+        this.logTime = LocalDateTime.now(); // todo 实时实现
+        this.step = LogStep.CHECKOUT; // todo
+        this.level = LogLevel.INFO;
+        this.content = statusEntry.getLogs();
     }
 
     // 枚举定义
