@@ -111,7 +111,7 @@ def maven_build(work_dir, task_id, profile):
     try:
         # 进入代码目录执行 Maven
         _stream_command(
-            ["mvn", "clean", "package", "-P", profile, "-DskipTests"],
+            ["mvn", "-P", profile, "clean", "package", "-DskipTests"],
             cwd=work_dir, task_id=task_id,
             step_identifier={
                 "Downloading": 45,
@@ -121,12 +121,8 @@ def maven_build(work_dir, task_id, profile):
             }
         )
 
-        jar_path = f"{work_dir}/target/app.jar"
-        if not os.path.exists(jar_path):
-            raise FileNotFoundError("构建产物未生成")
-
         # 返回构建产物路径
-        return jar_path
+        return _get_build(task_id, work_dir)
     except subprocess.CalledProcessError as e:
         # 错误信息增强（匹配图片中的unexpected token错误）
         # error_msg = f"构建失败: {e.stderr}"
@@ -137,6 +133,23 @@ def maven_build(work_dir, task_id, profile):
 
         update_status(task_id, "FAILED", logs=str(e), progress=40)
         raise
+
+
+def _get_build(task_id, work_dir):
+    target_dir = Path(work_dir) / "target"
+    jar_files = list(target_dir.glob("*.jar"))
+
+    if not jar_files:
+        push_logs(task_id, f'在 {target_dir} 中未找到JAR文件')
+        raise FileNotFoundError(f"在 {target_dir} 中未找到JAR文件")
+    elif len(jar_files) > 1:
+        # 选择最新修改的JAR（通常为最近打包结果）
+        latest_jar = max(jar_files, key=lambda f: f.stat().st_mtime)
+        return str(latest_jar)
+    else:
+        return str(jar_files[0])
+
+
 
 @app.task
 def deploy_to_k8s(jar_path, task_id):
@@ -201,7 +214,6 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     process = subprocess.Popen(
         shell_cmd,
         cwd=cwd,
-        shell=True,  # 调用系统 Shell（如 cmd.exe 或 bash）
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
