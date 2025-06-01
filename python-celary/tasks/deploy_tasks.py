@@ -173,8 +173,14 @@ def deploy_to_k8s(jar_path, task_id, project_name):
                 "cmd": ["docker", "build", "-t", f"{project_name}:{task_id}",
                         "--build-arg", f"JAR_FILE={jar_file}",
                         "-f", "./springboot.dockerfile", "."],
-                "progress": 85,
+                "progress": 65,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
+            },
+            # 本地镜像关联到私有镜像库
+            {
+                "cmd": ["docker", "tag", f'{project_name}:{task_id}', f"{DOCKER_REGISTRY}/{project_name}:{task_id}"],
+                "progress": 80,
+                "error_hint": "镜像推送失败，请检查仓库权限"
             },
             # 推送到镜像仓库
             {
