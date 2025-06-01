@@ -1,6 +1,6 @@
 # 通用Spring Boot Dockerfile模板
 # 推荐使用JRE基础镜像减小体积[7](@ref)
-FROM bellsoft/liberica-runtime-container:jre-21-musl
+FROM 127.0.0.1:5000/jre-21-bellsoft:v1
 
 # 动态参数声明（构建时传入）
 # 默认端口可覆盖

@@ -32,7 +32,7 @@ logging.basicConfig(
 )
 logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO - 系统启动完成 [2,6](@ref)
 
-
+DOCKER_REGISTRY = os.environ.get('DOCKER_REGISTRY', '127.0.0.1:5000')
 
 # 默认队列celery; 通过字典解包增强灵活性，推荐用于复杂业务
 @app.task(bind=True, max_retries=3)
@@ -155,27 +155,37 @@ def _get_build(task_id, work_dir):
 @app.task
 def deploy_to_k8s(jar_path, task_id, project_name):
     update_status(task_id, "DEPLOYING")
+
+    # 复制 Dockerfile 到构建目录
+    shutil.copy(
+        _get_dockerfile(),
+        Path(jar_path).parent / "springboot.dockerfile"
+    )
+
+    # Dockerfile中的copy操作是基于相对路径操作的
+    jar_file = Path(jar_path).name
+
     try:
         # 分阶段执行部署命令
         commands = [
             # 构建 Docker 镜像
             {
                 "cmd": ["docker", "build", "-t", f"{project_name}:{task_id}",
-                        "--build-arg", f"JAR_FILE={jar_path}",
+                        "--build-arg", f"JAR_FILE={jar_file}",
                         "-f", "./springboot.dockerfile", "."],
                 "progress": 85,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
             },
             # 推送到镜像仓库
             {
-                "cmd": ["docker", "push", f"myregistry.com/{project_name}:{task_id}"],
+                "cmd": ["docker", "push", f"{DOCKER_REGISTRY}/{project_name}:{task_id}"],
                 "progress": 90,
                 "error_hint": "镜像推送失败，请检查仓库权限"
             },
             # 更新 Kubernetes 部署
             {
                 "cmd": ["kubectl", "set", "image", f"deployment/{project_name}",
-                        f"{project_name}=myregistry.com/{project_name}:{task_id}"],
+                        f"{project_name}={DOCKER_REGISTRY}/{project_name}:{task_id}"],
                 "progress": 95,
                 "error_hint": "K8s更新失败，请检查deployment配置"
             }
@@ -200,6 +210,20 @@ def deploy_to_k8s(jar_path, task_id, project_name):
 
         update_status(task_id, "FAILED", logs=error_msg, progress=80)
         raise
+
+
+def _get_dockerfile():
+    # 获取脚本所在目录
+    script_dir = Path(__file__).resolve().parent
+    # 构建目标文件路径
+    dockerfile_path = script_dir / "springboot.dockerfile"
+    # 验证文件存在性
+    if dockerfile_path.is_file():
+        print(f"找到文件: {dockerfile_path}")
+        return dockerfile_path
+    else:
+        print(f"错误: 同级目录未找到 springboot.dockerfile")
+        raise FileNotFoundError(f"在 {script_dir} 中未找到springboot.dockerfile文件")
 
 
 # 新增实时日志捕获函数
