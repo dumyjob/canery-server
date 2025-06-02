@@ -1,0 +1,25 @@
+# deployment.j2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-deployment
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: {{ app_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}
+    spec:
+      containers:
+      - name: {{ app_name }}
+        image: {{ image_name }}:{{ image_tag }}
+        ports:
+        - containerPort: {{ container_port }}
+        env:
+          {% for key, value in env_vars.items() %}
+          - name: {{ key }}
+            value: "{{ value }}"
+          {% endfor %}

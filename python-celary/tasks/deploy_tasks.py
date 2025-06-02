@@ -14,7 +14,9 @@ from celery import Celery
 from celery import chain
 from celery import group
 from urllib3.exceptions import MaxRetryError, NewConnectionError
+
 from git.git_configs import GitConfig
+from tasks.k8s_file import _get_deployment
 
 # from deploy_ros import  deploy_ros
 
@@ -48,7 +50,7 @@ def deploy_task(self, task_id, config):
         workflow = chain(
             git_checkout.s(task_id, git_repo, branch),
             maven_build.s(task_id, maven_profile),
-            group(deploy_to_k8s.s(task_id, project_name))
+            group(deploy_to_k8s.s(task_id, config))
         )
 
 
@@ -153,8 +155,9 @@ def _get_build(task_id, work_dir):
 
 
 @app.task
-def deploy_to_k8s(jar_path, task_id, project_name):
+def deploy_to_k8s(jar_path, task_id, config):
     update_status(task_id, "DEPLOYING")
+    project_name = config.get("project_name")
 
     # 复制 Dockerfile 到构建目录
     shutil.copy(
@@ -187,13 +190,6 @@ def deploy_to_k8s(jar_path, task_id, project_name):
                 "cmd": ["docker", "push", f"{DOCKER_REGISTRY}/{project_name}:{task_id}"],
                 "progress": 90,
                 "error_hint": "镜像推送失败，请检查仓库权限"
-            },
-            # 更新 Kubernetes 部署
-            {
-                "cmd": ["kubectl", "set", "image", f"deployment/{project_name}",
-                        f"{project_name}={DOCKER_REGISTRY}/{project_name}:{task_id}"],
-                "progress": 95,
-                "error_hint": "K8s更新失败，请检查deployment配置"
             }
         ]
 
@@ -204,6 +200,8 @@ def deploy_to_k8s(jar_path, task_id, project_name):
                 task_id=task_id,
                 step_identifier={"Success": step["progress"]}
             )
+
+        deploy_k8s(task_id, config)
 
         update_status(task_id, "SUCCESS", progress=100)
 
@@ -230,6 +228,14 @@ def _get_dockerfile():
     else:
         print(f"错误: 同级目录未找到 springboot.dockerfile")
         raise FileNotFoundError(f"在 {script_dir} 中未找到springboot.dockerfile文件")
+
+
+def deploy_k8s(task_id, config):
+    update_status(task_id, "DEPLOYED")
+    logging.info("deploy task:" + task_id + ", config:" + str(config))
+
+    subprocess.run(["kubectl", "apply", "-f", "-"], input=_get_deployment(config).encode(), check=True)
+    subprocess.run(["kubectl", "apply", "-f", "-"], input=_get_deployment(config).encode(), check=True)
 
 
 # 新增实时日志捕获函数
