@@ -16,7 +16,7 @@ from celery import group
 from urllib3.exceptions import MaxRetryError, NewConnectionError
 
 from git.git_configs import GitConfig
-from tasks.k8s_file import _get_deployment
+from tasks.k8s_file import _get_deployment, _get_service
 
 # from deploy_ros import  deploy_ros
 
@@ -41,7 +41,6 @@ DOCKER_REGISTRY = os.environ.get('DOCKER_REGISTRY', '127.0.0.1:5000')
 def deploy_task(self, task_id, config):
     logging.info("run task:" + task_id + ", config:" + str(config))
     try:
-        project_name = config.get("project_name")
         git_repo = config.get("git_repos")
         branch = config.get("branch", "main")
         maven_profile = config.get('maven_profile', 'dev')
@@ -168,12 +167,14 @@ def deploy_to_k8s(jar_path, task_id, config):
     # Dockerfile中的copy操作是基于相对路径操作的
     jar_file = Path(jar_path).name
 
+    image_name = f"{project_name}"
+    image_tag = f"v{task_id}"
     try:
         # 分阶段执行部署命令
         commands = [
             # 构建 Docker 镜像
             {
-                "cmd": ["docker", "build", "-t", f"{project_name}:{task_id}",
+                "cmd": ["docker", "build", "-t", f"{image_name}:{image_tag}",
                         "--build-arg", f"JAR_FILE={jar_file}",
                         "-f", "./springboot.dockerfile", "."],
                 "progress": 65,
@@ -181,13 +182,13 @@ def deploy_to_k8s(jar_path, task_id, config):
             },
             # 本地镜像关联到私有镜像库
             {
-                "cmd": ["docker", "tag", f'{project_name}:{task_id}', f"{DOCKER_REGISTRY}/{project_name}:{task_id}"],
+                "cmd": ["docker", "tag", f'{image_name}:{image_tag}', f"{DOCKER_REGISTRY}/{image_name}:{image_tag}"],
                 "progress": 80,
                 "error_hint": "镜像推送失败，请检查仓库权限"
             },
             # 推送到镜像仓库
             {
-                "cmd": ["docker", "push", f"{DOCKER_REGISTRY}/{project_name}:{task_id}"],
+                "cmd": ["docker", "push", f"{DOCKER_REGISTRY}/{image_name}:{image_tag}"],
                 "progress": 90,
                 "error_hint": "镜像推送失败，请检查仓库权限"
             }
@@ -201,7 +202,23 @@ def deploy_to_k8s(jar_path, task_id, config):
                 step_identifier={"Success": step["progress"]}
             )
 
-        deploy_k8s(task_id, config)
+        deploy_config = {
+            "app_name": f"{project_name}",
+            "replicas": config.get("pods"),
+            "image_name": f"{DOCKER_REGISTRY}/{image_tag}",
+            "image_tag": f"{image_tag}",
+            "container_port": config.get("port", "8080"),
+            # cpu & memory 单位为 m
+            "cpu_limit": config.get("cpu_limit", "1000m"),
+            "memory_limit": config.get("memory_limit", "1024Mi"),
+            "cpu": config.get("cpu", "500m"),
+            "memory": config.get("memory", "512Mi"),
+            "service_type": "LoadBalancer",
+            "service_port": 80,
+            "env_vars": {"ENV": "production", "LOG_LEVEL": "info"}
+        }
+
+        deploy_k8s(task_id, deploy_config)
 
         update_status(task_id, "SUCCESS", progress=100)
 
@@ -234,13 +251,24 @@ def deploy_k8s(task_id, config):
     update_status(task_id, "DEPLOYED")
     logging.info("deploy task:" + task_id + ", config:" + str(config))
 
-    subprocess.run(["kubectl", "apply", "-f", "-"], input=_get_deployment(config).encode(), check=True)
-    subprocess.run(["kubectl", "apply", "-f", "-"], input=_get_deployment(config).encode(), check=True)
+    _stream_command(
+        ["kubectl", "apply", "-f", "-"],
+        cwd=None, task_id=task_id,
+        step_identifier={"Success": 10},
+        input=_get_deployment(config).encode()
+    )
+
+    _stream_command(
+        ["kubectl", "apply", "-f", "-"],
+        cwd=None, task_id=task_id,
+        step_identifier={"Success": 70},
+        input=_get_service(config).encode()
+    )
 
 
 # 新增实时日志捕获函数
 @app.task
-def _stream_command(cmd, cwd, task_id,step_identifier=None):
+def _stream_command(cmd, cwd, task_id, step_identifier=None, input=None):
     logging.info("task_id: " + task_id + ",run command:" + str(cmd))
     sys.stdout.write("task_id: " + task_id + ",run command:" + str(cmd) + '\n')
     """实时捕获子进程输出并推送日志"""
@@ -254,12 +282,18 @@ def _stream_command(cmd, cwd, task_id,step_identifier=None):
     process = subprocess.Popen(
         shell_cmd,
         cwd=cwd,
+        stdin=subprocess.PIPE if input else None,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
         bufsize=1,  # 行缓冲模式[5,8](@ref)
         universal_newlines=True
     )
+
+    # 写入输入数据（如果有）
+    if input:
+        process.stdin.write(input.decode() if isinstance(input, bytes) else input)
+        process.stdin.close()
 
     sys.stdout.write(str(cmd) + '\n')
     # 实时输出捕获逻辑

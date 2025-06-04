@@ -59,6 +59,9 @@ public class PythonDeployClient {
             putIfNotNull(vars, "project_name", project.getName());
             putIfNotNull(vars, "branch", deployment.getBranch());
             putIfNotNull(vars, "env", deployment.getEnv());
+            putIfNotNull(vars, "pods", project.getPods());
+            putIfNotNull(vars, "cpu", project.getCpu());
+            putIfNotNull(vars, "memory", project.getMemory());
             putIfNotNull(vars, "env_vars", config.getEnvVariables());
             putIfNotNull(vars, "cloud_config", config.getCloudConfig());
             CeleryTaskMessage message = CeleryTaskMessage.builder(deployTaskName, taskId)
