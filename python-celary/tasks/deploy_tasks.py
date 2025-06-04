@@ -213,7 +213,7 @@ def deploy_to_k8s(jar_path, task_id, config):
             "memory_limit": config.get("memory_limit", "1024Mi"),
             "cpu": config.get("cpu", "500m"),
             "memory": config.get("memory", "512Mi"),
-            "service_type": "LoadBalancer",
+            "service_type": "NodePort",
             "service_port": 80,
             "env_vars": {"ENV": "production", "LOG_LEVEL": "info"}
         }
