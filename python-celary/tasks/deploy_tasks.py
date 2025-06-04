@@ -204,8 +204,8 @@ def deploy_to_k8s(jar_path, task_id, config):
 
         deploy_config = {
             "app_name": f"{project_name}",
-            "replicas": config.get("pods"),
-            "image_name": f"{DOCKER_REGISTRY}/{image_tag}",
+            "replicas": config.get("pods", 1),
+            "image_name": f"{DOCKER_REGISTRY}/{image_name}",
             "image_tag": f"{image_tag}",
             "container_port": config.get("port", "8080"),
             # cpu & memory 单位为 m
@@ -218,6 +218,9 @@ def deploy_to_k8s(jar_path, task_id, config):
             "env_vars": {"ENV": "production", "LOG_LEVEL": "info"}
         }
 
+        push_logs(task_id, f"正在部署到 Kubernetes，配置如下：\n{deploy_config}")
+
+        # 部署到 Kubernetes
         deploy_k8s(task_id, deploy_config)
 
         update_status(task_id, "SUCCESS", progress=100)
