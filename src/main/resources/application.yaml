@@ -2,7 +2,7 @@ spring:
   application:
     name:canary-sever
   datasource:
-    url: jdbc:mysql://mysql-external.default.svc.cluster.local:3306/canary?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://10.97.141.169:3306/canary?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
     username: root
     password: MysqlRoot@2025!
     driver-class-name: com.mysql.cj.jdbc.Driver
