@@ -216,8 +216,8 @@ def deploy_to_k8s(jar_path, task_id, config):
             "container_port": config.get("port", "8080"),
             # cpu & memory 单位为 m
             "cpu_limit": config.get("cpu_limit", "1000m"),
-            "memory_limit": config.get("memory_limit", "1024Mi"),
-            "cpu": config.get("cpu", "500m"),
+            "memory_limit": f'{config.get("memory_limit", "1024")}Mi',
+            "cpu": f'{config.get("cpu", "500")}m',
             "memory": config.get("memory", "512Mi"),
             "service_type": "NodePort",
             "service_port": 80,
