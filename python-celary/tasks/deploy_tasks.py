@@ -47,7 +47,7 @@ def deploy_task(self, task_id, config):
         project_type = config.get('project_type', 'java')
 
         # 任务链：Git Checkout → Maven Build → Deploy
-        if project_type == 'spring-boot':
+        if project_type == 'spring-boot-jar':
             workflow = chain(
                 git_checkout.s(task_id, git_repo, branch),
                 maven_build.s(task_id, maven_profile),
