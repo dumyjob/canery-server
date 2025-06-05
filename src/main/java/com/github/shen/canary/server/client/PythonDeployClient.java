@@ -56,6 +56,7 @@ public class PythonDeployClient {
 
             Map<String, Object> vars = new HashMap<>();
             putIfNotNull(vars, "git_repos", deployment.getGitRepo());
+            putIfNotNull(vars, "project_type", project.getProjectType());
             putIfNotNull(vars, "project_name", project.getName());
             putIfNotNull(vars, "branch", deployment.getBranch());
             putIfNotNull(vars, "env", deployment.getEnv());

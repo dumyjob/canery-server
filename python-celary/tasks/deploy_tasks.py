@@ -16,7 +16,7 @@ from celery import group
 from urllib3.exceptions import MaxRetryError, NewConnectionError
 
 from git.git_configs import GitConfig
-from tasks.k8s_file import _get_deployment, _get_service
+from tasks.k8s_file import _get_deployment, _get_service, _get_ingress
 
 # from deploy_ros import  deploy_ros
 
@@ -215,7 +215,11 @@ def deploy_to_k8s(jar_path, task_id, config):
             "memory": config.get("memory", "512Mi"),
             "service_type": "NodePort",
             "service_port": 80,
-            "env_vars": {"ENV": "production", "LOG_LEVEL": "info"}
+            "env_vars": {"ENV": "production", "LOG_LEVEL": "info"},
+
+            # 以下参数可选
+            "namespace": "default",
+            "domain": f"{config.get('domain', f'{project_name}.example.com')}",
         }
 
         push_logs(task_id, f"正在部署到 Kubernetes，配置如下：\n{deploy_config}")
@@ -267,6 +271,15 @@ def deploy_k8s(task_id, config):
         step_identifier={"Success": 70},
         input=_get_service(config).encode()
     )
+
+    project_type = config.get("project_type")
+    if project_type == "react":
+        _stream_command(
+            ["kubectl", "apply", "-f", "-"],
+            cwd=None, task_id=task_id,
+            step_identifier={"Success": 90},
+            input=_get_ingress(config).encode()
+        )
 
 
 # 新增实时日志捕获函数
