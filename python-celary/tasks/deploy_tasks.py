@@ -44,15 +44,20 @@ def deploy_task(self, task_id, config):
         git_repo = config.get("git_repos")
         branch = config.get("branch", "main")
         maven_profile = config.get('maven_profile', 'dev')
+        project_type = config.get('project_type', 'java')
 
         # 任务链：Git Checkout → Maven Build → Deploy
-        workflow = chain(
-            git_checkout.s(task_id, git_repo, branch),
-            maven_build.s(task_id, maven_profile),
-            group(deploy_to_k8s.s(task_id, config))
-        )
-
-
+        if project_type == 'spring-boot':
+            workflow = chain(
+                git_checkout.s(task_id, git_repo, branch),
+                maven_build.s(task_id, maven_profile),
+                group(deploy_to_k8s.s(task_id, config))
+            )
+        else:
+            workflow = chain(
+                git_checkout.s(task_id, git_repo, branch),
+                group(deploy_to_k8s.s(task_id, config))
+            )
         workflow.apply_async()
     except Exception as e:
         self.retry(exc=e, countdown=60)
@@ -157,11 +162,12 @@ def _get_build(task_id, work_dir):
 def deploy_to_k8s(jar_path, task_id, config):
     update_status(task_id, "DEPLOYING")
     project_name = config.get("project_name")
+    project_type = config.get("project_type")
 
     # 复制 Dockerfile 到构建目录
     shutil.copy(
         _get_dockerfile(),
-        Path(jar_path).parent / "springboot.dockerfile"
+        Path(jar_path).parent / f"{project_type}.dockerfile"
     )
 
     # Dockerfile中的copy操作是基于相对路径操作的
@@ -176,7 +182,7 @@ def deploy_to_k8s(jar_path, task_id, config):
             {
                 "cmd": ["docker", "build", "-t", f"{image_name}:{image_tag}",
                         "--build-arg", f"JAR_FILE={jar_file}",
-                        "-f", "./springboot.dockerfile", "."],
+                        "-f", f"./{project_type}.dockerfile", "."],
                 "progress": 65,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
             },
@@ -244,14 +250,14 @@ def _get_dockerfile():
     # 获取脚本所在目录
     script_dir = Path(__file__).resolve().parent
     # 构建目标文件路径
-    dockerfile_path = script_dir / "springboot.dockerfile"
+    dockerfile_path = script_dir / "spring-boot.dockerfile"
     # 验证文件存在性
     if dockerfile_path.is_file():
         print(f"找到文件: {dockerfile_path}")
         return dockerfile_path
     else:
-        print(f"错误: 同级目录未找到 springboot.dockerfile")
-        raise FileNotFoundError(f"在 {script_dir} 中未找到springboot.dockerfile文件")
+        print(f"错误: 同级目录未找到 spring-boot.dockerfile")
+        raise FileNotFoundError(f"在 {script_dir} 中未找到spring-boot.dockerfile文件")
 
 
 def deploy_k8s(task_id, config):

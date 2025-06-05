@@ -1,17 +1,16 @@
-# 通用Spring Boot Dockerfile模板
-# 推荐使用JRE基础镜像减小体积[7](@ref)
-FROM 127.0.0.1:5000/jre-21-bellsoft:v1
-
-# 动态参数声明（构建时传入）
-# 默认端口可覆盖
-ARG JAR_FILE
-ARG APP_PORT=8080
-
-# 标准化目录结构
+# 阶段1：构建环境
+FROM node:18-alpine AS builder
 WORKDIR /app
-# 关键：通过变量注入JAR路径
-COPY ${JAR_FILE} ./app.jar
+COPY package*.json ./
+# 依赖锁定,避免版本漂移
+RUN npm ci --frozen-lockfile
+COPY . .
+RUN npm run build  # 生成静态文件到 /app/dist
 
-# 统一运行时配置
-EXPOSE ${APP_PORT}
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# 阶段2：运行环境
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+#自定义 Nginx 配置
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
