@@ -47,20 +47,31 @@ def deploy_task(self, task_id, config):
         project_type = config.get('project_type', 'java')
 
         # 任务链：Git Checkout → Maven Build → Deploy
-        if project_type == 'spring-boot-jar':
-            workflow = chain(
-                git_checkout.s(task_id, git_repo, branch),
-                maven_build.s(task_id, maven_profile),
-                group(deploy_to_k8s.s(task_id, config))
-            )
-        else:
-            workflow = chain(
-                git_checkout.s(task_id, git_repo, branch),
-                group(deploy_to_k8s.s(task_id, config))
-            )
+        workflow = chain(
+            group(deploy_to_k8s.s(_get_workdir(task_id), task_id, config))
+        )
+
         workflow.apply_async()
     except Exception as e:
         self.retry(exc=e, countdown=60)
+
+
+def _get_workdir(task_id):
+    # 创建临时目录(windows: D:/canary_home/ linux:??
+    # /canary_home/tmp/{task_id} windows直接创建可能没权限
+    work_dir = Path.home() / "canary_home" / "tmp" / str(task_id)
+    try:
+        push_cmd(task_id, f'mkdir {work_dir}')
+        work_dir.mkdir(parents=True, exist_ok=True)
+        if work_dir.exists() and work_dir.is_dir():
+            print(f"目录 {work_dir} 创建成功！")
+        else:
+            print(f"目录创建异常，请检查路径：{work_dir}")
+        return work_dir
+    except Exception as e:
+        print(f"\033[31m[ERROR] {str(e)}\033[0m", file=sys.stderr)
+        update_status(task_id, "FAILED", logs=str(e), progress=20)
+        raise
 
 
 @app.task
@@ -159,19 +170,19 @@ def _get_build(task_id, work_dir):
 
 
 @app.task
-def deploy_to_k8s(jar_path, task_id, config):
+def deploy_to_k8s(work_dir, task_id, config):
     update_status(task_id, "DEPLOYING")
     project_name = config.get("project_name")
     project_type = config.get("project_type")
 
-    # 复制 Dockerfile 到构建目录
+    # 复制 Dockerfile 到工作目录
+    # Dockerfile中的copy操作是基于相对路径操作的
     shutil.copy(
         _get_dockerfile(),
-        Path(jar_path).parent / f"{project_type}.dockerfile"
+        Path(work_dir).parent / f"{project_type}.dockerfile"
     )
 
-    # Dockerfile中的copy操作是基于相对路径操作的
-    jar_file = Path(jar_path).name
+    # jar_file = Path(jar_path).name
 
     image_name = f"{project_name}"
     image_tag = f"v{task_id}"
@@ -181,7 +192,9 @@ def deploy_to_k8s(jar_path, task_id, config):
             # 构建 Docker 镜像
             {
                 "cmd": ["docker", "build", "-t", f"{image_name}:{image_tag}",
-                        "--build-arg", f"JAR_FILE={jar_file}",
+                        "--build-arg", f"BRANCH={config.get("branch", "main")}",
+                        "--build-arg", f"REPO_URL={config.get("git_repos")}",
+                        "--build-arg", f"APP_PORT={config.get("port")}",
                         "-f", f"./{project_type}.dockerfile", "."],
                 "progress": 65,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
@@ -203,7 +216,7 @@ def deploy_to_k8s(jar_path, task_id, config):
         for step in commands:
             _stream_command(
                 step["cmd"],
-                cwd=os.path.dirname(jar_path),
+                cwd=work_dir,
                 task_id=task_id,
                 step_identifier={"Success": step["progress"]}
             )
