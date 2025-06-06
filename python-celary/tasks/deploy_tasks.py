@@ -192,9 +192,9 @@ def deploy_to_k8s(work_dir, task_id, config):
             # 构建 Docker 镜像
             {
                 "cmd": ["docker", "build", "-t", f"{image_name}:{image_tag}",
-                        "--build-arg", f"BRANCH={config.get("branch", "main")}",
                         "--build-arg", f"REPO_URL={config.get("git_repos")}",
-                        "--build-arg", f"APP_PORT={config.get("port")}",
+                        "--build-arg", f"BRANCH={config.get("branch", "main")}",
+                        "--build-arg", f"APP_PORT={config.get("port", '8080')}",
                         "-f", f"./{project_type}.dockerfile", "."],
                 "progress": 65,
                 "error_hint": "镜像构建失败，请检查Dockerfile第5行"
