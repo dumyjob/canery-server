@@ -1,5 +1,6 @@
 # 通用Spring Boot Dockerfile模板
 FROM alpine/git AS cloner
+ARG REPO_URL
 ARG BRANCH=main
 WORKDIR /src
 RUN git clone --branch ${BRANCH} --depth 1 ${REPO_URL} .  # 浅克隆加速[1,3](@ref)
