@@ -67,7 +67,7 @@ def _get_workdir(task_id):
             print(f"目录 {work_dir} 创建成功！")
         else:
             print(f"目录创建异常，请检查路径：{work_dir}")
-        return work_dir
+        return str(work_dir)
     except Exception as e:
         print(f"\033[31m[ERROR] {str(e)}\033[0m", file=sys.stderr)
         update_status(task_id, "FAILED", logs=str(e), progress=20)
@@ -179,7 +179,7 @@ def deploy_to_k8s(work_dir, task_id, config):
     # Dockerfile中的copy操作是基于相对路径操作的
     shutil.copy(
         _get_dockerfile(),
-        Path(work_dir).parent / f"{project_type}.dockerfile"
+        Path(work_dir) / f"{project_type}.dockerfile"
     )
 
     # jar_file = Path(jar_path).name
@@ -322,7 +322,8 @@ def _stream_command(cmd, cwd, task_id, step_identifier=None, input=None):
         stderr=subprocess.STDOUT,  # 合并错误输出到标准输出[1,9](@ref)
         text=True,  # 以文本模式处理输出[8](@ref)
         bufsize=1,  # 行缓冲模式[5,8](@ref)
-        universal_newlines=True
+        universal_newlines=True,
+        encoding='utf-8'
     )
 
     # 写入输入数据（如果有）

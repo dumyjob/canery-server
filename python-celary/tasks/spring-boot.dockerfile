@@ -5,7 +5,7 @@ WORKDIR /src
 RUN git clone --branch ${BRANCH} --depth 1 ${REPO_URL} .  # 浅克隆加速[1,3](@ref)
 
 # 阶段2：应用构建（如Maven）
-FROM maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 WORKDIR /build
  #从克隆阶段复制代码
 COPY --from=cloner /src .
@@ -13,7 +13,7 @@ RUN mvn clean package -DskipTests  # 构建命令[6,8](@ref)
 
 # 阶段3：运行时（仅JRE）
 # 推荐使用JRE基础镜像减小体积[7](@ref)
-FROM 127.0.0.1:5000/jre-21-bellsoft:v1
+FROM bellsoft/liberica-runtime-container:jre-21-musl
 
 # 动态参数声明（构建时传入）
 # 默认端口可覆盖
