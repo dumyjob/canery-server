@@ -185,8 +185,8 @@ def deploy_to_k8s(work_dir, task_id, config):
     # 复制nginx.config到工作目录 (
     if project_type == "react":
         shutil.copy(
-            _get_file("nginx.config"),
-            Path(work_dir) / "nginx.config"
+            _get_file("nginx.conf"),
+            Path(work_dir) / "nginx.conf"
         )
 
 
@@ -277,20 +277,6 @@ def _get_file(file_name):
     else:
         print(f"错误: 同级目录未找到 {file_name}")
         raise FileNotFoundError(f"在 {script_dir} 中未找到{file_name}文件")
-
-def _get_dockerfile():
-    # 获取脚本所在目录
-    script_dir = Path(__file__).resolve().parent
-    # 构建目标文件路径
-    dockerfile_path = script_dir / "spring-boot.dockerfile"
-    # 验证文件存在性
-    if dockerfile_path.is_file():
-        print(f"找到文件: {dockerfile_path}")
-        return dockerfile_path
-    else:
-        print(f"错误: 同级目录未找到 spring-boot.dockerfile")
-        raise FileNotFoundError(f"在 {script_dir} 中未找到spring-boot.dockerfile文件")
-
 
 def deploy_k8s(task_id, config):
     update_status(task_id, "DEPLOYED")
