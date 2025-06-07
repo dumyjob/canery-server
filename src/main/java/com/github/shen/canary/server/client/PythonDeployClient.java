@@ -1,6 +1,7 @@
 package com.github.shen.canary.server.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.shen.canary.server.domain.ProjectType;
 import com.github.shen.canary.server.entity.CeleryTaskStatus;
 import com.github.shen.canary.server.entity.Deployment;
 import com.github.shen.canary.server.entity.Project;
@@ -61,6 +62,15 @@ public class PythonDeployClient {
             putIfNotNull(vars, "branch", deployment.getBranch());
             putIfNotNull(vars, "env", deployment.getEnv());
             putIfNotNull(vars, "pods", project.getPods());
+
+            String port = "80";
+            if (ProjectType.SPRING_BOOT.getName().equals(project.getProjectType())) {
+                // 后续放到配置中 todo
+                port = "8080";
+            } else if (ProjectType.REACT.getName().equals(project.getProjectType())) {
+                port = "80";
+            }
+            putIfNotNull(vars, "port", port);
             putIfNotNull(vars, "cpu", project.getCpu());
             putIfNotNull(vars, "memory", project.getMemory());
             putIfNotNull(vars, "env_vars", config.getEnvVariables());

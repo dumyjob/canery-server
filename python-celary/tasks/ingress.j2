@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: react-ingress
+  name: canary-ui-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /  # 路径重写
 spec:
@@ -13,6 +13,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: react-service
+                name: canary-ui-service
                 port:
-                  number: 80
+                  number: {{service_port}}
