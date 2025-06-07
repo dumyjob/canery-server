@@ -178,11 +178,17 @@ def deploy_to_k8s(work_dir, task_id, config):
     # 复制 Dockerfile 到工作目录
     # Dockerfile中的copy操作是基于相对路径操作的
     shutil.copy(
-        _get_dockerfile(),
+        _get_file(f"{project_type}.dockerfile"),
         Path(work_dir) / f"{project_type}.dockerfile"
     )
 
-    # jar_file = Path(jar_path).name
+    # 复制nginx.config到工作目录 (
+    if project_type == "react":
+        shutil.copy(
+            _get_file("nginx.config"),
+            Path(work_dir) / "nginx.config"
+        )
+
 
     image_name = f"{project_name}"
     image_tag = f"v{task_id}"
@@ -258,6 +264,19 @@ def deploy_to_k8s(work_dir, task_id, config):
         update_status(task_id, "FAILED", logs=error_msg, progress=80)
         raise
 
+
+def _get_file(file_name):
+    # 获取脚本所在目录
+    script_dir = Path(__file__).resolve().parent
+    # 构建目标文件路径
+    file_path = script_dir / f"{file_name}"
+    # 验证文件存在性
+    if file_path.is_file():
+        print(f"找到文件: {file_path}")
+        return file_path
+    else:
+        print(f"错误: 同级目录未找到 {file_name}")
+        raise FileNotFoundError(f"在 {script_dir} 中未找到{file_name}文件")
 
 def _get_dockerfile():
     # 获取脚本所在目录
