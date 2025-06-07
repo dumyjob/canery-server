@@ -6,7 +6,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /  # 路径重写
 spec:
   rules:
-    - host: myapp.example.com
+    - host: myapp.local.com
       http:
         paths:
           - path: /
@@ -15,4 +15,4 @@ spec:
               service:
                 name: canary-ui-service
                 port:
-                  number: {{service_port}}
+                  number: 80
