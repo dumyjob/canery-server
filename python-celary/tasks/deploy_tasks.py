@@ -298,6 +298,8 @@ def deploy_k8s(task_id, config):
     )
 
     project_type = config.get("project_type")
+    sys.stdout.write(
+        "task_id: " + task_id + ",project_type:" + project_type + f'，{project_type == "react"}开始部署Ingress\n')
     if project_type == "react":
         _stream_command(
             ["kubectl", "apply", "-f", "-"],
@@ -313,7 +315,7 @@ def _stream_command(cmd, cwd, task_id, step_identifier=None, input=None):
     logging.info("task_id: " + task_id + ",run command:" + str(cmd))
     sys.stdout.write("task_id: " + task_id + ",run command:" + str(cmd) + '\n')
     """实时捕获子进程输出并推送日志"""
-    push_cmd(task_id, format_cmd(cmd))
+    push_cmd(task_id, format_cmd(cmd, input))
 
     if platform.system() == "Windows":
         shell_cmd = ["cmd", "/c"] + cmd
@@ -363,7 +365,7 @@ def _stream_command(cmd, cwd, task_id, step_identifier=None, input=None):
     return exit_code
 
 
-def format_cmd(cmd_list):
+def format_cmd(cmd_list, input=None):
     """转换Maven命令列表为有效字符串"""
     filtered_list = []
     skip_next = False  # 标记是否跳过下一个元素（用于处理-P后的None）
@@ -378,7 +380,11 @@ def format_cmd(cmd_list):
         if item is not None:
             filtered_list.append(item)
 
-    return " ".join(filtered_list)
+    cmd_str = " ".join(filtered_list)
+    # 追加输入内容
+    if input is not None:
+        cmd_str += f" {input}"  # 用空格分隔命令和输入
+    return cmd_str
 
 
 def push_commit(task_id, commit_id, commit_message):
