@@ -283,6 +283,7 @@ def deploy_k8s(task_id, config):
     update_status(task_id, "DEPLOYED")
     logging.info("deploy task:" + task_id + ", config:" + str(config))
 
+    push_logs(task_id, f"k8s deployment")
     _stream_command(
         ["kubectl", "apply", "-f", "-"],
         cwd=None, task_id=task_id,
@@ -290,6 +291,7 @@ def deploy_k8s(task_id, config):
         input=_get_deployment(config).encode()
     )
 
+    push_logs(task_id, f"k8s service")
     _stream_command(
         ["kubectl", "apply", "-f", "-"],
         cwd=None, task_id=task_id,
@@ -298,9 +300,9 @@ def deploy_k8s(task_id, config):
     )
 
     project_type = config.get("project_type")
-    sys.stdout.write(
-        "task_id: " + task_id + ",project_type:" + project_type + f'，{project_type == "react"}开始部署Ingress\n')
+
     if project_type == "react":
+        push_logs(task_id, f"k8s ingress")
         _stream_command(
             ["kubectl", "apply", "-f", "-"],
             cwd=None, task_id=task_id,
