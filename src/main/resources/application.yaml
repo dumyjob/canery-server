@@ -13,6 +13,7 @@ spring:
 
 
 mybatis:
+  mapperLocations: classpath:*:/mapper/*.xml
   type-aliases-package: com.github.shen.canary.**.entity
   configuration:
     map-underscore-to-camel-case: false

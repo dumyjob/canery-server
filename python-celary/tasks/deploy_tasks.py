@@ -229,6 +229,7 @@ def deploy_to_k8s(work_dir, task_id, config):
 
         deploy_config = {
             "app_name": f"{project_name}",
+            "project_type": f"{project_type}",
             "replicas": config.get("pods", 1),
             "image_name": f"{DOCKER_REGISTRY}/{image_name}",
             "image_tag": f"{image_tag}",
@@ -238,7 +239,7 @@ def deploy_to_k8s(work_dir, task_id, config):
             "memory_limit": f'{config.get("memory_limit", "1024")}Mi',
             "cpu": f'{config.get("cpu", "500")}m',
             "memory": config.get("memory", "512Mi"),
-            "service_type": "NodePort",
+            "service_type": "ClusterIP",
             "service_port": 80,
             "env_vars": {"ENV": "production", "LOG_LEVEL": "info"},
 
