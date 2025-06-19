@@ -303,6 +303,7 @@ def deploy_k8s(task_id, config):
 
     if project_type == "react":
         push_logs(task_id, f"k8s ingress")
+
         _stream_command(
             ["kubectl", "apply", "-f", "-"],
             cwd=None, task_id=task_id,

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import sys
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -43,7 +44,7 @@ def _get_ingress(config):
     if not template_path.is_file():
         raise FileNotFoundError(f"在 {script_dir} 中未找到ingress.j2文件")
     env = Environment(loader=FileSystemLoader(script_dir))  # 模板文件在当前目录
-    ingress_template = env.get_template("service.j2")
+    ingress_template = env.get_template("ingress.j2")
     ingress_yaml = ingress_template.render(**config)
 
     return ingress_yaml
