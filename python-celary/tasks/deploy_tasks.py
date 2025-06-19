@@ -36,6 +36,7 @@ logging.info("系统启动完成")  # 示例输出：2025-05-19 14:20:35 - INFO 
 
 DOCKER_REGISTRY = os.environ.get('DOCKER_REGISTRY', '127.0.0.1:5000')
 
+
 # 默认队列celery; 通过字典解包增强灵活性，推荐用于复杂业务
 @app.task(bind=True, max_retries=3)
 def deploy_task(self, task_id, config):
@@ -94,7 +95,7 @@ def git_checkout(task_id, repo_url: str, branch):
         # 执行 Git 命令
         _stream_command(
             ["git", "clone", "--branch", branch, config['auth_url'], work_dir],
-            cwd=None,task_id=task_id
+            cwd=None, task_id=task_id
         )
 
         # 获取最后一次commit ID [1,4](@ref)
@@ -168,7 +169,6 @@ def _get_build(task_id, work_dir):
         return str(jar_files[0])
 
 
-
 @app.task
 def deploy_to_k8s(work_dir, task_id, config):
     update_status(task_id, "DEPLOYING")
@@ -188,7 +188,6 @@ def deploy_to_k8s(work_dir, task_id, config):
             _get_file("nginx.conf"),
             Path(work_dir) / "nginx.conf"
         )
-
 
     image_name = f"{project_name}"
     image_tag = f"v{task_id}"
@@ -278,6 +277,7 @@ def _get_file(file_name):
     else:
         print(f"错误: 同级目录未找到 {file_name}")
         raise FileNotFoundError(f"在 {script_dir} 中未找到{file_name}文件")
+
 
 def deploy_k8s(task_id, config):
     update_status(task_id, "DEPLOYED")
@@ -381,10 +381,44 @@ def format_cmd(cmd_list, input=None):
             filtered_list.append(item)
 
     cmd_str = " ".join(filtered_list)
-    # 追加输入内容
+    # 美化输入内容
     if input is not None:
-        cmd_str += f" {input}"  # 用空格分隔命令和输入
+        input_str = None
+
+        # 尝试解码字节串
+        if isinstance(input, bytes):
+            try:
+                input_str = input.decode('utf-8')
+            except UnicodeDecodeError:
+                # 对于二进制内容，使用摘要表示
+                hex_repr = ' '.join(f'{b:02x}' for b in input[:8]) + ('...' if len(input) > 8 else '')
+                input_str = f"[Binary data: {len(input)} bytes (hex: {hex_repr})]"
+
+        # 处理非字节输入
+        else:
+            input_str = str(input)
+
+        # 智能美化YAML内容
+        if input_str and looks_like_yaml(input_str):
+            # 格式化YAML缩进
+            formatted_yaml = "\n".join(f"  | {line}" for line in input_str.splitlines())
+            return f"{cmd_str} <<EOF\n{formatted_yaml}\nEOF"
+
+        # 对于小段文本直接附加
+        elif input_str and len(input_str.splitlines()) <= 3 and len(input_str) < 100:
+            return f"{cmd_str} {input_str}"
+
+        # 其他情况使用heredoc格式
+        else:
+            return f"{cmd_str} <<< {input_str}"
     return cmd_str
+
+
+def looks_like_yaml(text):
+    """启发式判断文本是否像YAML"""
+    yaml_indicator = text.lstrip().startswith(('apiVersion:', 'kind:', 'metadata:', 'spec:'))
+    yaml_structure = any(char in text for char in [':', '-', '|', '>']) and '\n' in text
+    return yaml_indicator or yaml_structure
 
 
 def push_commit(task_id, commit_id, commit_message):
@@ -416,6 +450,7 @@ def push_logs(task_id, line):
         # 失败时回退到本地日志记录
         logging.info(line.strip())
 
+
 def push_cmd(task_id, cmd, logs=None, progress=None):
     # 调用 Java 服务的状态更新 API
     try:
@@ -433,6 +468,7 @@ def push_cmd(task_id, cmd, logs=None, progress=None):
         logging.error(error_msg)
         # 可选：控制台输出简化信息
         print(f"错误: {e}（详见日志文件app.log）")
+
 
 def update_status(task_id, status, logs=None, progress=None):
     # 调用 Java 服务的状态更新 API
