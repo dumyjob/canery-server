@@ -10,6 +10,14 @@ spec:
     - host: myapp.local.com
       http:
         paths:
+        # 新增API路径规则（必须放在根路径规则之前）
+          - path: /api
+                pathType: Prefix
+                backend:
+                 service:
+                   name: canary-server-service  # 将API请求路由到新服务
+                      port:
+                        number: 80
           - path: /
             pathType: Prefix
             backend:
