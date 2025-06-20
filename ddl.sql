@@ -71,7 +71,7 @@ CREATE TABLE traffic_strategies (
   qps_limit INT DEFAULT 1000 COMMENT 'QPS限制',
   priority TINYINT NOT NULL DEFAULT 5 COMMENT '优先级（1-10）',
   PRIMARY KEY (strategy_id),
-  FOREIGN KEY (release_order_id) REFERENCES release_orders(order_id) ON DELETE CASCADE
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流量策略表';
 
 -- 灰度策略表（gray_strategies）
