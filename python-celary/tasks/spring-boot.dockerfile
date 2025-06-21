@@ -16,8 +16,7 @@ WORKDIR /build
 COPY --from=cloner /src .
 
 # 输出提交信息到构建日志（关键修改）
-RUN cp commit-info.txt . && \
-    echo "当前构建的提交信息: $(cat commit-info.txt)" && \
+RUN echo "当前构建的提交信息: $(cat commit-info.txt)" && \
     mvn clean package -DskipTests  # 构建命令[6,8](@ref)
 
 # 阶段3：运行时（仅JRE）
