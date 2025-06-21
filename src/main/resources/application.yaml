@@ -7,9 +7,10 @@ spring:
     password: MysqlRoot@2025!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  redis:
-    host: redis-service.redis.svc.cluster.local
-    port: 6379
+  data:
+    redis:
+      host: redis-service.redis.svc.cluster.local
+      port: 6379
 
 
 mybatis:
