@@ -196,7 +196,7 @@ def deploy_to_k8s(work_dir, task_id, config):
         commands = [
             # 构建 Docker 镜像
             {
-                "cmd": ["docker", "build", "-t", f"{image_name}:{image_tag}",
+                "cmd": ["docker", "build", "--no-cache", "-t", f"{image_name}:{image_tag}",
                         "--build-arg", f"REPO_URL={config.get("git_repos")}",
                         "--build-arg", f"BRANCH={config.get("branch", "main")}",
                         "--build-arg", f"APP_PORT={config.get("port")}",
